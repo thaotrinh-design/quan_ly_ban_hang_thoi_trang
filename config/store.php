@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'name' => 'TINA STORE',
+    'address' => 'Yên Lộ, Yên Nghĩa, Hà Đông, Hà Nội',
+    'phone' => '1900 6868',
+    'email' => 'contact@fashionstore.vn',
+    'hours' => '8:00 - 22:00 (Thứ 2 - Chủ nhật)',
+    'facebook' => 'https://facebook.com/fashionstore.vn',
+    'tiktok' => 'https://tiktok.com/@fashionstore.vn',
+    'instagram' => 'https://instagram.com/fashionstore.vn',
+    'youtube' => 'https://youtube.com/@fashionstore.vn',
+    'map_lat' => 20.9492,
+    'map_lng' => 105.7468,
+    'map_embed' => 'https://maps.google.com/maps?q=Y%C3%AAn+L%E1%BB%99,+Y%C3%AAn+Ngh%C4%A9a,+H%C3%A0+%C4%90%C3%B4ng,+H%C3%A0+N%E1%BB%99i&hl=vi&z=16&output=embed',
+    'bank_name' => 'Vietcombank',
+    'bank_account' => '1023456789',
+    'bank_holder' => 'TINA STORE',
+    'bank_qr' => 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=FASHIONSTORE|VCB|1023456789',
+    'price_ranges' => [
+        '' => 'Tất cả mức giá',
+        '0-100000' => 'Dưới 100.000đ',
+        '100000-200000' => '100.000đ - 200.000đ',
+        '200000-300000' => '200.000đ - 300.000đ',
+        '300000-400000' => '300.000đ - 400.000đ',
+        '400000-500000' => '400.000đ - 500.000đ',
+        '500000-700000' => '500.000đ - 700.000đ',
+        '700000-1000000' => '700.000đ - 1.000.000đ',
+        '1000000-' => 'Trên 1.000.000đ',
+    ],
+];
