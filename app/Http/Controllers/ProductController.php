@@ -33,9 +33,26 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
         ]);
+
+        $sizes = $this->parseList($request->available_sizes);
+        $colors = $this->parseList($request->available_colors);
+        $hasVariants = count($sizes) > 0 && count($colors) > 0;
+
+        // Xác định stock
+        if ($hasVariants) {
+            $variantStocks = $request->input('variant_stock', []);
+            $totalStock = 0;
+            foreach ($sizes as $size) {
+                foreach ($colors as $color) {
+                    $key = $size . '_' . $color;
+                    $totalStock += (int) ($variantStocks[$key] ?? 0);
+                }
+            }
+        } else {
+            $totalStock = (int) ($request->input('stock_simple', 0));
+        }
 
         $imagePath = null;
 
@@ -49,15 +66,17 @@ class ProductController extends Controller
             'slug' => Str::slug($request->name) . '-' . time(),
             'description' => $request->description,
             'price' => $request->price,
-            'stock' => $request->stock,
-            'available_sizes' => $this->parseList($request->available_sizes),
-            'available_colors' => $this->parseList($request->available_colors),
+            'stock' => $totalStock,
+            'available_sizes' => $sizes,
+            'available_colors' => $colors,
             'status' => $request->boolean('status', true),
             'image' => $imagePath,
         ]);
 
-        // Tạo variants từ size + color
-        $this->syncVariants($product, $request);
+        // Tạo variants chỉ khi có size + color
+        if ($hasVariants) {
+            $this->syncVariants($product, $request);
+        }
 
         return redirect()
             ->route('admin.products.index')
@@ -81,8 +100,24 @@ class ProductController extends Controller
             'name' => 'required',
             'category_id' => 'required',
             'price' => 'required',
-            'stock' => 'required'
         ]);
+
+        $sizes = $this->parseList($request->available_sizes);
+        $colors = $this->parseList($request->available_colors);
+        $hasVariants = count($sizes) > 0 && count($colors) > 0;
+
+        if ($hasVariants) {
+            $variantStocks = $request->input('variant_stock', []);
+            $totalStock = 0;
+            foreach ($sizes as $size) {
+                foreach ($colors as $color) {
+                    $key = $size . '_' . $color;
+                    $totalStock += (int) ($variantStocks[$key] ?? 0);
+                }
+            }
+        } else {
+            $totalStock = (int) ($request->input('stock_simple', $product->stock));
+        }
 
         $imagePath = $product->image;
 
@@ -95,15 +130,20 @@ class ProductController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
-            'stock' => $request->stock,
-            'available_sizes' => $this->parseList($request->available_sizes),
-            'available_colors' => $this->parseList($request->available_colors),
+            'stock' => $totalStock,
+            'available_sizes' => $sizes,
+            'available_colors' => $colors,
             'status' => $request->boolean('status', true),
             'image' => $imagePath,
         ]);
 
-        // Cập nhật variants
-        $this->syncVariants($product, $request);
+        // Xóa variants cũ
+        $product->variants()->delete();
+
+        // Tạo variants mới chỉ khi có size + color
+        if ($hasVariants) {
+            $this->syncVariants($product, $request);
+        }
 
         return redirect()->route('admin.products.index')->with('success', 'Cập nhật sản phẩm thành công');
     }
@@ -118,7 +158,8 @@ class ProductController extends Controller
 
     public function restore(int $id)
     {
-        Product::withTrashed()->find($id)->restore();
+        $product = Product::withTrashed()->findOrFail($id);
+        $product->restore();
 
         return redirect()
             ->route('admin.products.index')
@@ -127,7 +168,8 @@ class ProductController extends Controller
 
     public function forceDelete(int $id)
     {
-        Product::withTrashed()->find($id)->forceDelete();
+        $product = Product::withTrashed()->findOrFail($id);
+        $product->forceDelete();
 
         return redirect()
             ->route('admin.products.index')

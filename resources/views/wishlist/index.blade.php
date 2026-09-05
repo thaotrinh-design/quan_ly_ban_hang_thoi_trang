@@ -7,6 +7,7 @@
     <h2>Sản phẩm yêu thích</h2>
     <div class="row mt-3">
         @forelse($wishlists as $wishlist)
+        @if($wishlist->product)
         <div class="col-md-3 mb-4">
             <div class="card h-100">
                 <img src="{{ $wishlist->product->image_url }}" class="card-img-top product-img">
@@ -21,6 +22,7 @@
                 </div>
             </div>
         </div>
+        @endif
         @empty
         <p class="text-muted">Danh sách yêu thích trống.</p>
         @endforelse

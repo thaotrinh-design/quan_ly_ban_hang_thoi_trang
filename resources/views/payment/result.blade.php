@@ -31,7 +31,7 @@
                             <a href="{{ route('orders.show', $order->id ?? 1) }}" class="btn btn-primary">
                                 Xem đơn hàng
                             </a>
-                            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('shop.index') }}" class="btn btn-outline-secondary">
                                 Tiếp tục mua sắm
                             </a>
                         </div>

@@ -14,7 +14,7 @@
             </div>
         </div>
         <div class="col-md-7">
-            <span class="product-cat">{{ $product->category->name ?? '' }}</span>
+            <span class="product-cat">{{ $product->category?->name ?? '' }}</span>
             <h2 class="mt-2 mb-3">{{ $product->name }}</h2>
             @include('partials.product-price', ['product' => $product])
             <p class="text-muted mt-2"><i class="fa-solid fa-box me-1"></i> Còn {{ $product->stock }} sản phẩm</p>
@@ -105,7 +105,7 @@
             @endauth
             @forelse($product->reviews as $review)
             <div class="review-item">
-                <strong>{{ $review->user->name ?? 'Khách' }}</strong>
+                <strong>{{ $review->user?->name ?? 'Khách' }}</strong>
                 <span class="badge bg-fashion-soft ms-1">Đã mua</span>
                 <span class="text-warning">{{ str_repeat('★', $review->star) }}</span>
                 <p class="mb-0 mt-1">{{ $review->comment }}</p>

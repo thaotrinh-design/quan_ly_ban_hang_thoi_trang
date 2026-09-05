@@ -30,7 +30,7 @@
                     </div>
                     <div class="mb-2">
                         <label>Địa chỉ nhận hàng</label>
-                        <textarea name="address" id="address-field" class="form-control">{{ $addresses->where('is_default', true)->first()->address ?? '' }}</textarea>
+                        <textarea name="address" id="address-field" class="form-control">{{ $addresses->where('is_default', true)->first()?->address ?? '' }}</textarea>
                     </div>
                     @if($addresses->count())
                     <div class="mb-3">

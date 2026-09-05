@@ -56,6 +56,10 @@ class SeedProductVariants extends Command
                 }
             }
 
+            // Cập nhật products.stock khớp với tổng variant stock
+            $totalVariantStock = $product->fresh()->variants()->sum('stock');
+            $product->update(['stock' => $totalVariantStock]);
+
             $bar->advance();
         }
 

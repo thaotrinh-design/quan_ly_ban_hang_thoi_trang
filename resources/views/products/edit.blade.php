@@ -16,7 +16,8 @@
         </select>
     </div>
     <div class="mb-2"><label>Giá</label><input type="number" name="price" class="form-control" value="{{ $product->price }}" required></div>
-    <div class="mb-2"><label>Tồn kho tổng (tự tính từ variants)</label><input type="number" name="stock" class="form-control" value="{{ $product->stock }}" readonly></div>
+    <div class="mb-2" id="stock-simple-wrapper" style="{{ count($product->getSizesList()) > 0 && count($product->getColorsList()) > 0 ? 'display:none' : '' }}"><label>Tồn kho</label><input type="number" name="stock_simple" id="stock-simple" class="form-control" min="0" value="{{ $product->stock }}"></div>
+    <div class="mb-2" id="stock-variant-wrapper" style="{{ count($product->getSizesList()) > 0 && count($product->getColorsList()) > 0 ? '' : 'display:none' }}"><label>Tồn kho tổng (tự tính từ variants)</label><input type="number" name="stock" id="stock-variant" class="form-control" value="{{ $product->stock }}" readonly></div>
     <div class="mb-2"><label>Size (cách nhau bởi dấu phẩy)</label><input type="text" name="available_sizes" id="sizes-input" class="form-control" value="{{ implode(', ', $product->getSizesList()) }}"></div>
     <div class="mb-2"><label>Màu (cách nhau bởi dấu phẩy)</label><input type="text" name="available_colors" id="colors-input" class="form-control" value="{{ implode(', ', $product->getColorsList()) }}"></div>
 
@@ -36,11 +37,11 @@
 
 @push('scripts')
 <script>
-// Existing variant data from server
-const existingVariants = @json($product->variants->pluck('stock', 'size_color')->mapWithKeys(function($val, $key) {
-    $parts = explode('_', $key, 2);
-    return [$key => ['size' => $parts[0] ?? $key, 'color' => $parts[1] ?? '', 'stock' => $val]];
-}));
+const existingVariants = @json(
+    collect($product->variants)->mapWithKeys(fn($v) => [
+        $v->size . '_' . $v->color => ['size' => $v->size, 'color' => $v->color, 'stock' => $v->stock]
+    ])
+);
 
 function parseList(str) {
     return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
@@ -50,24 +51,26 @@ function buildVariantTable() {
     const sizes = parseList(document.getElementById('sizes-input').value);
     const colors = parseList(document.getElementById('colors-input').value);
     const container = document.getElementById('variant-table');
-    const stockInput = document.querySelector('[name="stock"]');
+    const simpleWrapper = document.getElementById('stock-simple-wrapper');
+    const variantWrapper = document.getElementById('stock-variant-wrapper');
 
     if (sizes.length === 0 || colors.length === 0) {
-        container.innerHTML = '<p class="text-muted small">Nhập size và màu để hiển thị bảng tồn kho.</p>';
-        stockInput.value = 0;
+        container.innerHTML = '<p class="text-muted small">Nhập size và màu để hiển thị bảng tồn kho. Nếu bỏ trống, sản phẩm sẽ không có biến thể.</p>';
+        simpleWrapper.style.display = '';
+        variantWrapper.style.display = 'none';
         return;
     }
 
+    simpleWrapper.style.display = 'none';
+    variantWrapper.style.display = '';
+
     let html = '<table class="table table-sm table-bordered mb-0">';
     html += '<thead><tr><th>Size</th><th>Màu</th><th>Tồn kho</th></tr></thead><tbody>';
-
-    let totalStock = 0;
 
     for (const size of sizes) {
         for (const color of colors) {
             const key = size + '_' + color;
             const existingStock = existingVariants[key]?.stock || 0;
-            totalStock += existingStock;
             html += `<tr>
                 <td>${size}</td>
                 <td>${color}</td>
@@ -79,7 +82,6 @@ function buildVariantTable() {
     html += '</tbody></table>';
     container.innerHTML = html;
 
-    // Update total stock when any variant changes
     document.querySelectorAll('.variant-stock').forEach(input => {
         input.addEventListener('input', updateTotalStock);
     });
@@ -90,13 +92,12 @@ function updateTotalStock() {
     document.querySelectorAll('.variant-stock').forEach(input => {
         total += parseInt(input.value) || 0;
     });
-    document.querySelector('[name="stock"]').value = total;
+    document.getElementById('stock-variant').value = total;
 }
 
 document.getElementById('sizes-input').addEventListener('input', buildVariantTable);
 document.getElementById('colors-input').addEventListener('input', buildVariantTable);
 
-// Initial build
 buildVariantTable();
 </script>
 @endpush

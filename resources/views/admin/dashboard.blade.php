@@ -17,7 +17,7 @@
         @foreach($recentOrders as $order)
         <tr>
             <td><a href="{{ route('admin.orders.show', $order) }}">#{{ $order->id }}</a></td>
-            <td>{{ $order->user->name ?? '' }}</td>
+            <td>{{ $order->user?->name ?? '' }}</td>
             <td>{{ number_format($order->total) }} VNĐ</td>
             <td>{{ $order->status_label }}</td>
             <td>{{ $order->created_at->format('d/m/Y') }}</td>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -38,8 +39,21 @@ class OrderController extends Controller
             return back()->with('error', 'Không thể hủy đơn hàng này.');
         }
 
+        $order->load('items.product');
+
         foreach ($order->items as $item) {
-            $item->product->increment('stock', $item->quantity);
+            // Khôi phục tồn kho sản phẩm
+            if ($item->product) {
+                $item->product->increment('stock', $item->quantity);
+            }
+
+            // Khôi phục tồn kho variant
+            if ($item->size && $item->color) {
+                ProductVariant::where('product_id', $item->product_id)
+                    ->where('size', $item->size)
+                    ->where('color', $item->color)
+                    ->increment('stock', $item->quantity);
+            }
         }
 
         $order->logStatusChange('cancelled', 'Khách hàng hủy đơn hàng');

@@ -5,7 +5,7 @@
 @section('content')
 <h2>Đơn hàng #{{ $order->id }}</h2>
 <div class="card p-3 mt-3">
-    <p><strong>Khách:</strong> {{ $order->user->name ?? '' }} ({{ $order->user->email ?? '' }})</p>
+    <p><strong>Khách:</strong> {{ $order->user?->name ?? '' }} ({{ $order->user?->email ?? '' }})</p>
     <p><strong>Người nhận:</strong> {{ $order->receiver_name }} - {{ $order->phone }}</p>
     <p><strong>Địa chỉ:</strong> {{ $order->address }}</p>
     <p><strong>Thanh toán:</strong> {{ $order->payment_method }}</p>

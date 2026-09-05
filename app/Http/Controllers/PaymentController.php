@@ -59,7 +59,6 @@ class PaymentController extends Controller
         $result = $vnpayService->verifyReturnUrl($request->all());
 
         if ($result['is_valid'] && $result['is_success']) {
-            // Thanh toán thành công
             $order = Order::find($result['txn_ref']);
 
             if ($order && $order->user_id === Auth::id()) {
@@ -71,19 +70,20 @@ class PaymentController extends Controller
                     'paid_at' => now(),
                 ]);
 
-                // Ghi lại lịch sử trạng thái
                 $order->logStatusChange('completed', 'Thanh toán VNPay thành công - Mã GD: ' . $result['transaction_no'], 'VNPay');
-            }
 
-            return redirect()->route('payment.result', [
-                'order' => $order->id,
-                'status' => 'success',
-                'message' => 'Thanh toán thành công!',
-            ]);
+                return redirect()->route('payment.result', [
+                    'order' => $order->id,
+                    'status' => 'success',
+                    'message' => 'Thanh toán thành công!',
+                ]);
+            }
         }
 
-        // Thanh toán thất bại
+        // Thanh toán thất bại hoặc order không hợp lệ
+        $orderId = $result['txn_ref'] ?? null;
         return redirect()->route('payment.result', [
+            'order' => $orderId,
             'status' => 'failed',
             'message' => 'Thanh toán thất bại hoặc bị hủy.',
         ]);

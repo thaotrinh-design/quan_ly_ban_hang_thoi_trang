@@ -34,13 +34,16 @@
                 <td>
                     <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex">
                         @csrf @method('PUT')
-                        <input type="number" name="quantity" value="{{ $item->quantity }}" min="0" max="{{ $item->product->stock }}" class="form-control form-control-sm" style="width:70px">
+                        @php
+                            $itemStock = $item->product->getStockByVariant($item->size, $item->color);
+                        @endphp
+                        <input type="number" name="quantity" value="{{ $item->quantity }}" min="0" max="{{ $itemStock }}" class="form-control form-control-sm" style="width:70px">
                         <button class="btn btn-sm btn-secondary ms-1">OK</button>
                     </form>
-                    @if($item->quantity > $item->product->stock)
-                        <small class="text-danger">Chỉ còn {{ $item->product->stock }} sản phẩm</small>
-                    @elseif($item->product->stock <= 5)
-                        <small class="text-warning">Sắp hết hàng (còn {{ $item->product->stock }})</small>
+                    @if($item->quantity > $itemStock)
+                        <small class="text-danger">Chỉ còn {{ $itemStock }} sản phẩm</small>
+                    @elseif($itemStock <= 5 && $itemStock > 0)
+                        <small class="text-warning">Sắp hết hàng (còn {{ $itemStock }})</small>
                     @endif
                 </td>
                 <td>{{ number_format($item->product->getSellingPrice() * $item->quantity) }} VNĐ</td>

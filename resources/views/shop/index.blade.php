@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </a>`;
                         } else {
                             const discountBadge = item.original_price > item.price ? `<span class="badge bg-danger ms-2">-${Math.round((1 - item.price/item.original_price) * 100)}%</span>` : '';
-                            html += `<a href="/product/${item.id}" class="suggestion-item">
+                            html += `<a href="{{ route('shop.index') }}?keyword=${encodeURIComponent(item.name)}" class="suggestion-item">
                                 <img src="${item.image}" class="suggestion-img" onerror="this.style.display='none'">
                                 <div class="suggestion-info">
                                     <div class="suggestion-name">${item.name}${discountBadge}</div>

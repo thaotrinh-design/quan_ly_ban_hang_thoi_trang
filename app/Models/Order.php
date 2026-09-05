@@ -123,7 +123,7 @@ class Order extends Model
             'order_id' => $this->id,
             'status' => $status,
             'note' => 'Đơn hàng được tạo thành công',
-            'changed_by' => auth()->user()->name ?? 'customer',
+            'changed_by' => auth()->user()?->name ?? 'customer',
             'created_at' => $this->created_at,
         ]);
     }

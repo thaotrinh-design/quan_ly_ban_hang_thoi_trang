@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -35,12 +36,25 @@ class OrderController extends Controller
         ]);
 
         if ($request->status === 'cancelled' && $order->status !== 'cancelled') {
+            $order->load('items.product');
+
             foreach ($order->items as $item) {
-                $item->product->increment('stock', $item->quantity);
+                // Khôi phục tồn kho sản phẩm
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+
+                // Khôi phục tồn kho variant
+                if ($item->size && $item->color) {
+                    ProductVariant::where('product_id', $item->product_id)
+                        ->where('size', $item->size)
+                        ->where('color', $item->color)
+                        ->increment('stock', $item->quantity);
+                }
             }
         }
 
-        $order->logStatusChange($request->status, 'Admin cập nhật trạng thái', auth()->user()->name);
+        $order->logStatusChange($request->status, 'Admin cập nhật trạng thái', auth()->user()?->name ?? 'admin');
 
         return back()->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
     }

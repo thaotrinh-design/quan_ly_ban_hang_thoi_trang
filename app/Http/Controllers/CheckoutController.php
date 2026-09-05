@@ -6,6 +6,7 @@ use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\ProductVariant;
 use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -111,7 +112,6 @@ class CheckoutController extends Controller
 
             $discount = $subtotal * ($coupon->discount / 100);
             $couponCode = $coupon->code;
-            $coupon->decrement('quantity');
         }
 
         $total = max(0, $subtotal - $discount);
@@ -127,7 +127,7 @@ class CheckoutController extends Controller
             $status = 'pending';
         }
 
-        DB::transaction(function () use ($user, $cart, $checkoutItems, $request, $subtotal, $total, $discount, $couponCode, $address, $isPickup, $status) {
+        DB::transaction(function () use ($user, $cart, $checkoutItems, $request, $subtotal, $total, $discount, $couponCode, $address, $isPickup, $status, &$coupon) {
             $order = Order::create([
                 'user_id' => $user->id,
                 'receiver_name' => $request->receiver_name,
@@ -143,13 +143,14 @@ class CheckoutController extends Controller
                 'status' => $status,
             ]);
 
-            // Ghi nhận lượt sử dụng coupon
-            if ($couponCode && isset($coupon)) {
+            // Ghi nhận lượt sử dụng coupon (BÊN TRONG transaction)
+            if ($couponCode && $coupon) {
                 CouponUsage::create([
                     'coupon_id' => $coupon->id,
                     'user_id' => $user->id,
                     'used_at' => now(),
                 ]);
+                $coupon->decrement('quantity');
             }
 
             foreach ($checkoutItems as $item) {
@@ -163,6 +164,14 @@ class CheckoutController extends Controller
                 ]);
 
                 $item->product->decrement('stock', $item->quantity);
+
+                // Giảm tồn kho variant nếu có
+                if ($item->size && $item->color) {
+                    ProductVariant::where('product_id', $item->product_id)
+                        ->where('size', $item->size)
+                        ->where('color', $item->color)
+                        ->decrement('stock', $item->quantity);
+                }
             }
 
             $selectedIds = $checkoutItems->pluck('id')->all();
@@ -175,8 +184,9 @@ class CheckoutController extends Controller
 
             session()->forget('checkout_item_ids');
 
-            // Ghi lại lịch sử trạng thái ban đầu
             $order->logInitialStatus($status);
+
+            return $order;
         });
 
         // Xử lý redirect theo phương thức thanh toán
