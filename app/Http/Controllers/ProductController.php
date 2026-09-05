@@ -155,7 +155,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        if ($product->orders()->count() > 0) {
+        if ($product->orderItems()->count() > 0) {
             return back()->with('error', 'Không thể xóa sản phẩm có đơn hàng. Hãy ẩn sản phẩm thay vì xóa.');
         }
 
@@ -178,7 +178,7 @@ class ProductController extends Controller
     {
         $product = Product::withTrashed()->findOrFail($id);
 
-        if ($product->orders()->count() > 0) {
+        if ($product->orderItems()->count() > 0) {
             return back()->with('error', 'Không thể xóa vĩnh viễn sản phẩm có đơn hàng.');
         }
 

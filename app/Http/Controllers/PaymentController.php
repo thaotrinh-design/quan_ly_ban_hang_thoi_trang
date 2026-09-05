@@ -62,7 +62,7 @@ class PaymentController extends Controller
         if ($result['is_valid'] && $result['is_success']) {
             $order = Order::find($result['txn_ref']);
 
-            if ($order && $order->user_id === Auth::id()) {
+            if ($order) {
                 DB::transaction(function () use ($order, $result) {
                     $order->update([
                         'vnpay_txn_ref' => $result['txn_ref'],
@@ -102,6 +102,10 @@ class PaymentController extends Controller
         $orderId = $request->get('order');
 
         $order = $orderId ? Order::find($orderId) : null;
+
+        if ($order && $order->user_id !== Auth::id()) {
+            $order = null;
+        }
 
         return view('payment.result', compact('order', 'status', 'message'));
     }

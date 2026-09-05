@@ -40,50 +40,56 @@ class OrderController extends Controller
             'status' => 'required|in:pending,processing,shipping,completed,cancelled',
         ]);
 
-        DB::transaction(function () use ($request, $order) {
-            $order->load('items.product');
+        try {
+            DB::transaction(function () use ($request, $order) {
+                $order->load('items.product');
 
-            $cancellableStatuses = ['pending', 'processing', 'shipping'];
+                $cancellableStatuses = ['pending', 'processing', 'shipping', 'completed'];
 
-            if ($request->status === 'cancelled' && in_array($order->status, $cancellableStatuses)) {
-                foreach ($order->items as $item) {
-                    if ($item->size && $item->color) {
-                        ProductVariant::where('product_id', $item->product_id)
-                            ->where('size', $item->size)
-                            ->where('color', $item->color)
-                            ->increment('stock', $item->quantity);
-                    } elseif ($item->product) {
-                        $item->product->increment('stock', $item->quantity);
-                    }
-                }
-            } elseif ($order->status === 'cancelled' && $request->status !== 'cancelled') {
-                $insufficientItems = [];
-                foreach ($order->items as $item) {
-                    if ($item->size && $item->color) {
-                        $decremented = ProductVariant::where('product_id', $item->product_id)
-                            ->where('size', $item->size)
-                            ->where('color', $item->color)
-                            ->where('stock', '>=', $item->quantity)
-                            ->decrement('stock', $item->quantity);
-                        if ($decremented === 0) {
-                            $insufficientItems[] = $item->product->name . " ({$item->size}/{$item->color})";
-                        }
-                    } elseif ($item->product) {
-                        $decremented = Product::where('id', $item->product_id)
-                            ->where('stock', '>=', $item->quantity)
-                            ->decrement('stock', $item->quantity);
-                        if ($decremented === 0) {
-                            $insufficientItems[] = $item->product->name;
+                if ($request->status === 'cancelled' && in_array($order->status, $cancellableStatuses)) {
+                    foreach ($order->items as $item) {
+                        if ($item->size && $item->color) {
+                            ProductVariant::where('product_id', $item->product_id)
+                                ->where('size', $item->size)
+                                ->where('color', $item->color)
+                                ->increment('stock', $item->quantity);
+                        } elseif ($item->product) {
+                            $item->product->increment('stock', $item->quantity);
                         }
                     }
+                } elseif ($order->status === 'cancelled' && $request->status !== 'cancelled') {
+                    $insufficientItems = [];
+                    foreach ($order->items as $item) {
+                        if ($item->size && $item->color) {
+                            $decremented = ProductVariant::where('product_id', $item->product_id)
+                                ->where('size', $item->size)
+                                ->where('color', $item->color)
+                                ->where('stock', '>=', $item->quantity)
+                                ->decrement('stock', $item->quantity);
+                            if ($decremented === 0) {
+                                $insufficientItems[] = $item->product->name . " ({$item->size}/{$item->color})";
+                            }
+                        } elseif ($item->product) {
+                            $decremented = Product::where('id', $item->product_id)
+                                ->where('stock', '>=', $item->quantity)
+                                ->decrement('stock', $item->quantity);
+                            if ($decremented === 0) {
+                                $insufficientItems[] = $item->product->name;
+                            }
+                        }
+                    }
+                    if (!empty($insufficientItems)) {
+                        throw new \RuntimeException('Sản phẩm không đủ tồn kho: ' . implode(', ', $insufficientItems));
+                    }
                 }
-                if (!empty($insufficientItems)) {
-                    throw new \RuntimeException('Sản phẩm không đủ tồn kho: ' . implode(', ', $insufficientItems));
-                }
-            }
 
-            $order->logStatusChange($request->status, 'Admin cập nhật trạng thái', auth()->user()?->name ?? 'admin');
-        });
+                $order->logStatusChange($request->status, 'Admin cập nhật trạng thái', auth()->user()?->name ?? 'admin');
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+        }
 
         return back()->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
     }

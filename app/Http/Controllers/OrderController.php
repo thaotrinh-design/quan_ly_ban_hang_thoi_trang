@@ -40,31 +40,37 @@ class OrderController extends Controller
             return back()->with('error', 'Đơn hàng không thể hủy ở trạng thái hiện tại.');
         }
 
-        DB::transaction(function () use ($order) {
-            $affected = Order::where('id', $order->id)
-                ->where('status', '!=', 'cancelled')
-                ->update(['status' => 'cancelled']);
+        try {
+            DB::transaction(function () use ($order) {
+                $affected = Order::where('id', $order->id)
+                    ->where('status', '!=', 'cancelled')
+                    ->update(['status' => 'cancelled']);
 
-            if ($affected === 0) {
-                throw new \RuntimeException('Đơn hàng đã được hủy trước đó.');
-            }
-
-            $order->refresh();
-            $order->load('items.product');
-
-            foreach ($order->items as $item) {
-                if ($item->size && $item->color) {
-                    ProductVariant::where('product_id', $item->product_id)
-                        ->where('size', $item->size)
-                        ->where('color', $item->color)
-                        ->increment('stock', $item->quantity);
-                } elseif ($item->product) {
-                    $item->product->increment('stock', $item->quantity);
+                if ($affected === 0) {
+                    throw new \RuntimeException('Đơn hàng đã được hủy trước đó.');
                 }
-            }
 
-            $order->logStatusChange('cancelled', 'Khách hàng hủy đơn hàng');
-        });
+                $order->refresh();
+                $order->load('items.product');
+
+                foreach ($order->items as $item) {
+                    if ($item->size && $item->color) {
+                        ProductVariant::where('product_id', $item->product_id)
+                            ->where('size', $item->size)
+                            ->where('color', $item->color)
+                            ->increment('stock', $item->quantity);
+                    } elseif ($item->product) {
+                        $item->product->increment('stock', $item->quantity);
+                    }
+                }
+
+                $order->logStatusChange('cancelled', 'Khách hàng hủy đơn hàng');
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Hủy đơn hàng thất bại. Vui lòng thử lại.');
+        }
 
         return back()->with('success', 'Đã hủy đơn hàng.');
     }
