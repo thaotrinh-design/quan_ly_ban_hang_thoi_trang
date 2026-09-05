@@ -96,8 +96,8 @@ class AuthController extends Controller
     }
 
     // Tạo token expire trong 15 phút
-    $token = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . now()->addMinutes(15)->timestamp, config('app.key'));
     $expires = now()->addMinutes(15)->timestamp;
+    $token = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . $expires, config('app.key'));
 
     return redirect()->route('reset.password', ['id' => $user->id, 'token' => $token, 'expires' => $expires]);
     }

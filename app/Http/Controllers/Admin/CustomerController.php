@@ -13,7 +13,7 @@ class CustomerController extends Controller
         $query = User::where('role', 'customer')->orderByDesc('id');
 
         if ($request->keyword) {
-            $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $request->keyword);
+            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $request->keyword);
             $query->where(function ($q) use ($escaped) {
                 $q->where('name', 'like', "%{$escaped}%")
                     ->orWhere('email', 'like', "%{$escaped}%")

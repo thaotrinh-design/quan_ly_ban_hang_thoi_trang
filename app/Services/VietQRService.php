@@ -25,7 +25,8 @@ class VietQRService
     public function generateQRUrl(float $amount, string $purpose): string
     {
         $encodedPurpose = urlencode($purpose);
-        return "https://img.vietqr.io/image/{$this->bankBin}-{$this->accountNumber}-compact2.png?amount={$amount}&addInfo={$encodedPurpose}&accountName={$this->accountName}";
+        $encodedName = urlencode($this->accountName);
+        return "https://img.vietqr.io/image/{$this->bankBin}-{$this->accountNumber}-compact2.png?amount={$amount}&addInfo={$encodedPurpose}&accountName={$encodedName}";
     }
 
     /**

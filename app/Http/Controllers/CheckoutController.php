@@ -6,6 +6,7 @@ use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CartService;
 use Illuminate\Http\Request;
@@ -147,18 +148,34 @@ class CheckoutController extends Controller
 
             // Ghi nhận lượt sử dụng coupon (BÊN TRONG transaction)
             if ($couponCode && $coupon) {
-                CouponUsage::create([
+                $usage = CouponUsage::firstOrCreate([
                     'coupon_id' => $coupon->id,
                     'user_id' => $user->id,
+                ], [
                     'used_at' => now(),
                 ]);
-                $coupon->decrement('quantity');
+                if ($usage->wasRecentlyCreated) {
+                    $coupon->decrement('quantity');
+                }
             }
 
             foreach ($checkoutItems as $item) {
-                $currentStock = $item->product->fresh()->stock;
-                if ($currentStock < $item->quantity) {
-                    throw new \RuntimeException("Sản phẩm \"{$item->product->name}\" chỉ còn {$currentStock} sản phẩm trong kho.");
+                if ($item->size && $item->color) {
+                    $decremented = ProductVariant::where('product_id', $item->product_id)
+                        ->where('size', $item->size)
+                        ->where('color', $item->color)
+                        ->where('stock', '>=', $item->quantity)
+                        ->decrement('stock', $item->quantity);
+                    if ($decremented === 0) {
+                        throw new \RuntimeException("Sản phẩm \"{$item->product->name}\" ({$item->size}/{$item->color}) đã hết hàng.");
+                    }
+                } else {
+                    $decremented = Product::where('id', $item->product_id)
+                        ->where('stock', '>=', $item->quantity)
+                        ->decrement('stock', $item->quantity);
+                    if ($decremented === 0) {
+                        throw new \RuntimeException("Sản phẩm \"{$item->product->name}\" đã hết hàng.");
+                    }
                 }
 
                 OrderItem::create([
@@ -169,16 +186,6 @@ class CheckoutController extends Controller
                     'quantity' => $item->quantity,
                     'price' => $item->product->getSellingPrice(),
                 ]);
-
-                $item->product->decrement('stock', $item->quantity);
-
-                if ($item->size && $item->color) {
-                    ProductVariant::where('product_id', $item->product_id)
-                        ->where('size', $item->size)
-                        ->where('color', $item->color)
-                        ->where('stock', '>=', $item->quantity)
-                        ->decrement('stock', $item->quantity);
-                }
             }
 
             $selectedIds = $checkoutItems->pluck('id')->all();

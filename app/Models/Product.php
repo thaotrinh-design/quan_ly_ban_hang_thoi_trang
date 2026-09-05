@@ -156,7 +156,7 @@ class Product extends Model
             return $query;
         }
 
-        $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $keyword);
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword);
 
         $query->where(function ($q) use ($escaped) {
             $q->where('name', 'like', "%{$escaped}%")

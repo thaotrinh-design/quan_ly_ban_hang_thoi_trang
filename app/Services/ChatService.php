@@ -139,7 +139,7 @@ class ChatService
         if (!empty($words)) {
             $query->where(function ($q) use ($words) {
                 foreach ($words as $word) {
-                    $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $word);
+                    $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $word);
                     $q->orWhere('name', 'like', "%{$escaped}%")
                         ->orWhere('description', 'like', "%{$escaped}%");
                 }

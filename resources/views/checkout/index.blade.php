@@ -185,6 +185,8 @@ document.querySelector('[name=pickup_phone]')?.addEventListener('input', functio
 
 form.addEventListener('submit', function(e) {
     if (typePickup.checked) {
+        document.querySelectorAll('[name=payment_method][type=radio]').forEach(el => el.disabled = true);
+
         const pm = document.querySelector('[name=payment_method_pickup]:checked');
         if (pm) {
             let hidden = form.querySelector('input[name=payment_method][type=hidden]');

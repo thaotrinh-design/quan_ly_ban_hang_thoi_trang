@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,19 +41,33 @@ class OrderController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $order) {
-            if ($request->status === 'cancelled' && $order->status !== 'cancelled') {
-                $order->load('items.product');
+            $order->load('items.product');
 
+            if ($request->status === 'cancelled' && $order->status !== 'cancelled') {
                 foreach ($order->items as $item) {
                     if ($item->product) {
                         $item->product->increment('stock', $item->quantity);
                     }
-
                     if ($item->size && $item->color) {
                         ProductVariant::where('product_id', $item->product_id)
                             ->where('size', $item->size)
                             ->where('color', $item->color)
                             ->increment('stock', $item->quantity);
+                    }
+                }
+            } elseif ($order->status === 'cancelled' && $request->status !== 'cancelled') {
+                foreach ($order->items as $item) {
+                    if ($item->product) {
+                        Product::where('id', $item->product_id)
+                            ->where('stock', '>=', $item->quantity)
+                            ->decrement('stock', $item->quantity);
+                    }
+                    if ($item->size && $item->color) {
+                        ProductVariant::where('product_id', $item->product_id)
+                            ->where('size', $item->size)
+                            ->where('color', $item->color)
+                            ->where('stock', '>=', $item->quantity)
+                            ->decrement('stock', $item->quantity);
                     }
                 }
             }

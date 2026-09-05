@@ -17,6 +17,7 @@ class SearchService
         }
 
         $keyword = trim($keyword);
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword);
         $words = explode(' ', $keyword);
 
         $products = Product::active()
@@ -30,22 +31,21 @@ class SearchService
                     WHEN available_sizes LIKE ? THEN 1
                     ELSE 0
                 END as relevance',
-                ["%{$keyword}%", "%{$keyword}%", "%{$keyword}%", "%{$keyword}%", "%{$keyword}%"]
+                ["%{$escaped}%", "%{$escaped}%", "%{$escaped}%", "%{$escaped}%", "%{$escaped}%"]
             )
-            ->where(function ($q) use ($keyword, $words) {
-                // Tìm theo tên (exact match ưu tiên cao)
-                $q->where('name', 'like', "%{$keyword}%");
+            ->where(function ($q) use ($escaped, $words) {
+                $q->where('name', 'like', "%{$escaped}%");
 
-                // Tìm theo từng từ
                 foreach ($words as $word) {
                     if (strlen($word) >= 2) {
-                        $q->orWhere('name', 'like', "%{$word}%")
-                            ->orWhere('description', 'like', "%{$word}%")
-                            ->orWhereHas('category', function ($cq) use ($word) {
-                                $cq->where('name', 'like', "%{$word}%");
+                        $wEsc = str_replace(['%', '_'], ['\\%', '\\_'], $word);
+                        $q->orWhere('name', 'like', "%{$wEsc}%")
+                            ->orWhere('description', 'like', "%{$wEsc}%")
+                            ->orWhereHas('category', function ($cq) use ($wEsc) {
+                                $cq->where('name', 'like', "%{$wEsc}%");
                             })
-                            ->orWhere('available_colors', 'like', "%{$word}%")
-                            ->orWhere('available_sizes', 'like', "%{$word}%");
+                            ->orWhere('available_colors', 'like', "%{$wEsc}%")
+                            ->orWhere('available_sizes', 'like', "%{$wEsc}%");
                     }
                 }
             })
@@ -68,10 +68,11 @@ class SearchService
         }
 
         $keyword = trim($keyword);
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $keyword);
 
         // Gợi ý theo tên sản phẩm
         $products = Product::active()
-            ->where('name', 'like', "%{$keyword}%")
+            ->where('name', 'like', "%{$escaped}%")
             ->select('id', 'name', 'price', 'discount_percent', 'image')
             ->limit($limit)
             ->get()
@@ -87,7 +88,7 @@ class SearchService
             });
 
         // Gợi ý theo danh mục
-        $categories = \App\Models\Category::where('name', 'like', "%{$keyword}%")
+        $categories = \App\Models\Category::where('name', 'like', "%{$escaped}%")
             ->select('id', 'name')
             ->limit(3)
             ->get()
