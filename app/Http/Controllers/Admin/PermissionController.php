@@ -64,7 +64,15 @@ class PermissionController extends Controller
             }
         }
 
-        $user->update(['role_id' => $request->role_id, 'role' => 'customer']);
+        $roleString = 'customer';
+        if ($request->role_id) {
+            $assignedRole = Role::find($request->role_id);
+            if ($assignedRole && $assignedRole->name === 'admin') {
+                $roleString = 'admin';
+            }
+        }
+
+        $user->update(['role_id' => $request->role_id, 'role' => $roleString]);
 
         return back()->with('success', 'Phân quyền người dùng thành công.');
     }

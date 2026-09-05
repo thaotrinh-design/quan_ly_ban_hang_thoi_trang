@@ -43,7 +43,7 @@ class OrderController extends Controller
         DB::transaction(function () use ($request, $order) {
             $order->load('items.product');
 
-            $cancellableStatuses = ['pending', 'processing'];
+            $cancellableStatuses = ['pending', 'processing', 'shipping'];
 
             if ($request->status === 'cancelled' && in_array($order->status, $cancellableStatuses)) {
                 foreach ($order->items as $item) {
