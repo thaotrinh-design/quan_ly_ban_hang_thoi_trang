@@ -55,7 +55,12 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', function () {
             const sizes = JSON.parse(this.dataset.sizes || '[]');
             const colors = JSON.parse(this.dataset.colors || '[]');
-            const variants = JSON.parse(this.dataset.variants || '{}');
+            let variants = {};
+            try {
+                variants = JSON.parse(this.dataset.variants || '{}');
+            } catch (e) {
+                console.error('Variant JSON parse error:', e, this.dataset.variants);
+            }
             const buyNow = this.dataset.action === 'buy';
 
             variantStocks = variants;

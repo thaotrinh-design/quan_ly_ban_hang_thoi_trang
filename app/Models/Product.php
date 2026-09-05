@@ -61,6 +61,7 @@ class Product extends Model
 
     /**
      * Lấy tồn kho theo size + color
+     * Fallback về stock sản phẩm nếu không có variant
      */
     public function getStockByVariant(?string $size, ?string $color): int
     {
@@ -73,7 +74,12 @@ class Product extends Model
             ->where('color', $color)
             ->first();
 
-        return $variant ? $variant->stock : 0;
+        // Nếu không tìm thấy variant → fallback về stock sản phẩm
+        if (!$variant) {
+            return $this->stock;
+        }
+
+        return $variant->stock;
     }
 
     /**

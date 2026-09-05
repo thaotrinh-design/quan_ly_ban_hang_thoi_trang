@@ -17,12 +17,19 @@
             <div class="product-actions mt-auto pt-2">
                 <a href="{{ route('shop.show', $product) }}" class="btn btn-outline-fashion btn-sm">Chi tiết</a>
                 @auth
+                @php
+                    $cardVariantStocks = [];
+                    foreach ($product->variants as $v) {
+                        $cardVariantStocks[$v->size . '_' . $v->color] = $v->stock;
+                    }
+                @endphp
                 <button type="button" class="btn btn-outline-fashion btn-sm btn-open-product-modal"
                     data-id="{{ $product->id }}"
                     data-name="{{ $product->name }}"
                     data-image="{{ $product->image_url }}"
                     data-sizes='@json($product->getSizesList())'
                     data-colors='@json($product->getColorsList())'
+                    data-variants='@json($cardVariantStocks)'
                     data-price="{{ $product->getSellingPrice() }}"
                     data-original="{{ $product->price }}"
                     data-discount="{{ $product->discount_percent }}"
@@ -35,6 +42,7 @@
                     data-image="{{ $product->image_url }}"
                     data-sizes='@json($product->getSizesList())'
                     data-colors='@json($product->getColorsList())'
+                    data-variants='@json($cardVariantStocks)'
                     data-price="{{ $product->getSellingPrice() }}"
                     data-original="{{ $product->price }}"
                     data-discount="{{ $product->discount_percent }}"

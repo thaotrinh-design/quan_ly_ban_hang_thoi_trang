@@ -34,7 +34,10 @@
             <div class="d-flex gap-2 flex-wrap mt-3">
                 @auth
                 @php
-                    $variantStocks = $product->variants->pluck('stock', 'size_color')->toArray();
+                    $variantStocks = [];
+                    foreach ($product->variants as $v) {
+                        $variantStocks[$v->size . '_' . $v->color] = $v->stock;
+                    }
                 @endphp
                 <button type="button" class="btn btn-outline-fashion btn-lg btn-open-product-modal"
                     data-id="{{ $product->id }}"
