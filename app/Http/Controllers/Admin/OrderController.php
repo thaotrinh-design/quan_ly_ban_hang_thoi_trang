@@ -43,7 +43,9 @@ class OrderController extends Controller
         DB::transaction(function () use ($request, $order) {
             $order->load('items.product');
 
-            if ($request->status === 'cancelled' && $order->status !== 'cancelled') {
+            $cancellableStatuses = ['pending', 'processing'];
+
+            if ($request->status === 'cancelled' && in_array($order->status, $cancellableStatuses)) {
                 foreach ($order->items as $item) {
                     if ($item->product) {
                         $item->product->increment('stock', $item->quantity);
@@ -56,11 +58,15 @@ class OrderController extends Controller
                     }
                 }
             } elseif ($order->status === 'cancelled' && $request->status !== 'cancelled') {
+                $insufficientItems = [];
                 foreach ($order->items as $item) {
                     if ($item->product) {
-                        Product::where('id', $item->product_id)
+                        $decremented = Product::where('id', $item->product_id)
                             ->where('stock', '>=', $item->quantity)
                             ->decrement('stock', $item->quantity);
+                        if ($decremented === 0) {
+                            $insufficientItems[] = $item->product->name;
+                        }
                     }
                     if ($item->size && $item->color) {
                         ProductVariant::where('product_id', $item->product_id)
@@ -69,6 +75,9 @@ class OrderController extends Controller
                             ->where('stock', '>=', $item->quantity)
                             ->decrement('stock', $item->quantity);
                     }
+                }
+                if (!empty($insufficientItems)) {
+                    throw new \RuntimeException('Sản phẩm không đủ tồn kho: ' . implode(', ', $insufficientItems));
                 }
             }
 

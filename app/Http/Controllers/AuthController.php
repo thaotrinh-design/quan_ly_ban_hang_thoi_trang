@@ -40,6 +40,8 @@ class AuthController extends Controller
             // Kiểm tra tài khoản bị khóa
             if ($user->status == 'locked') {
                 Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
                 return back()->with(
                     'error',
@@ -161,6 +163,9 @@ class AuthController extends Controller
 
     $user->password = Hash::make($request->password);
     $user->save();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
     return redirect()->route('login')->with('success', 'Đổi mật khẩu thành công.');
 }

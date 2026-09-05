@@ -9,7 +9,7 @@
             </a>
         </div>
         <div class="product-card-body">
-            <span class="product-cat">{{ $product->category->name ?? '' }}</span>
+            <span class="product-cat">{{ $product->category?->name ?? '' }}</span>
             <h6 class="product-name">
                 <a href="{{ route('shop.show', $product) }}" class="text-decoration-none text-dark">{{ $product->name }}</a>
             </h6>

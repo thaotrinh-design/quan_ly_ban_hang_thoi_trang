@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -128,24 +129,26 @@ class ProductController extends Controller
             $imagePath = $request->file('image')->store('products', 'public');
         }
 
-        $product->update([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . $product->id,
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $totalStock,
-            'available_sizes' => $sizes,
-            'available_colors' => $colors,
-            'status' => $request->boolean('status', true),
-            'image' => $imagePath,
-        ]);
+        DB::transaction(function () use ($request, $product, $sizes, $colors, $hasVariants, $totalStock, $imagePath) {
+            $product->update([
+                'category_id' => $request->category_id,
+                'name' => $request->name,
+                'slug' => Str::slug($request->name) . '-' . $product->id,
+                'description' => $request->description,
+                'price' => $request->price,
+                'stock' => $totalStock,
+                'available_sizes' => $sizes,
+                'available_colors' => $colors,
+                'status' => $request->boolean('status', true),
+                'image' => $imagePath,
+            ]);
 
-        $product->variants()->delete();
+            $product->variants()->delete();
 
-        if ($hasVariants) {
-            $this->syncVariants($product, $request);
-        }
+            if ($hasVariants) {
+                $this->syncVariants($product, $request);
+            }
+        });
 
         return redirect()->route('admin.products.index')->with('success', 'Cập nhật sản phẩm thành công');
     }

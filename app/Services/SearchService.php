@@ -13,7 +13,7 @@ class SearchService
     public static function search(?string $keyword, int $limit = 50): \Illuminate\Database\Eloquent\Collection
     {
         if (!$keyword || strlen(trim($keyword)) < 2) {
-            return collect();
+            return new \Illuminate\Database\Eloquent\Collection();
         }
 
         $keyword = trim($keyword);
@@ -38,7 +38,7 @@ class SearchService
 
                 foreach ($words as $word) {
                     if (strlen($word) >= 2) {
-                        $wEsc = str_replace(['%', '_'], ['\\%', '\\_'], $word);
+                        $wEsc = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $word);
                         $q->orWhere('name', 'like', "%{$wEsc}%")
                             ->orWhere('description', 'like', "%{$wEsc}%")
                             ->orWhereHas('category', function ($cq) use ($wEsc) {

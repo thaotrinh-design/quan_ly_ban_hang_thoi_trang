@@ -44,8 +44,9 @@ class CartService
         $totalNeeded = $currentQuantity + $quantity;
 
         if ($totalNeeded > $variantStock) {
+            $variantLabel = $size && $color ? " ({$size}/{$color})" : "";
             throw new \InvalidArgumentException(
-                "Sản phẩm \"{$product->name}\" ({$size}/{$color}) chỉ còn {$variantStock} sản phẩm trong kho."
+                "Sản phẩm \"{$product->name}\"{$variantLabel} chỉ còn {$variantStock} sản phẩm trong kho."
             );
         }
 

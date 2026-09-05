@@ -28,9 +28,15 @@
                         @endif
 
                         <div class="mt-3">
-                            <a href="{{ route('orders.show', $order?->id ?? 1) }}" class="btn btn-primary">
+                            @if($order)
+                            <a href="{{ route('orders.show', $order->id) }}" class="btn btn-primary">
                                 Xem đơn hàng
                             </a>
+                            @else
+                            <a href="{{ route('orders.index') }}" class="btn btn-primary">
+                                Xem đơn hàng
+                            </a>
+                            @endif
                             <a href="{{ route('shop.index') }}" class="btn btn-outline-secondary">
                                 Tiếp tục mua sắm
                             </a>

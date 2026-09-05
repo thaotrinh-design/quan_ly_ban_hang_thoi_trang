@@ -53,6 +53,17 @@ class PermissionController extends Controller
             'role_id' => 'nullable|exists:roles,id',
         ]);
 
+        // Check if demoting the last admin
+        if (!$request->role_id) {
+            $adminRoleId = Role::where('name', 'admin')->value('id');
+            if ($adminRoleId && $user->role_id === $adminRoleId) {
+                $adminCount = User::where('role_id', $adminRoleId)->count();
+                if ($adminCount <= 1) {
+                    return back()->with('error', 'Không thể hạ quyền admin cuối cùng.');
+                }
+            }
+        }
+
         $user->update(['role_id' => $request->role_id]);
 
         return back()->with('success', 'Phân quyền người dùng thành công.');

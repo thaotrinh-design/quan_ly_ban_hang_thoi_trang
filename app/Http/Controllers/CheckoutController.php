@@ -130,7 +130,8 @@ class CheckoutController extends Controller
             $status = 'pending';
         }
 
-        $order = DB::transaction(function () use ($user, $cart, $checkoutItems, $request, $subtotal, $total, $discount, $couponCode, $address, $isPickup, $status, &$coupon) {
+        try {
+            $order = DB::transaction(function () use ($user, $cart, $checkoutItems, $request, $subtotal, $total, $discount, $couponCode, $address, $isPickup, $status, &$coupon) {
             $order = Order::create([
                 'user_id' => $user->id,
                 'receiver_name' => $request->receiver_name,
@@ -202,6 +203,11 @@ class CheckoutController extends Controller
 
             return $order;
         });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Đặt hàng thất bại. Vui lòng thử lại.');
+        }
 
         // Xử lý redirect theo phương thức thanh toán
         if ($request->payment_method === 'vnpay') {

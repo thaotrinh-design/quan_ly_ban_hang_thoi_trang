@@ -23,7 +23,7 @@
                     <span class="badge bg-danger">Đã xóa</span>
                 @endif
             </td>
-            <td>{{ $product->category->name ?? '' }}</td>
+            <td>{{ $product->category?->name ?? '' }}</td>
             <td>{{ number_format($product->price) }} VNĐ</td>
             <td>{{ implode(', ', $product->getSizesList()) }}</td>
             <td>{{ implode(', ', $product->getColorsList()) }}</td>

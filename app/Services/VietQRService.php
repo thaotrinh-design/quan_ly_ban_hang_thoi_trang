@@ -34,8 +34,22 @@ class VietQRService
      */
     public function getQRInfo(float $amount, string $purpose): array
     {
+        $bankNames = [
+            '970436' => 'Vietcombank',
+            '970418' => 'BIDV',
+            '970405' => 'VietinBank',
+            '970407' => 'Techcombank',
+            '970422' => 'MB Bank',
+            '970423' => 'ACB',
+            '970426' => 'Sacombank',
+            '970432' => 'VPBank',
+            '970433' => 'VPBank',
+            '970437' => 'HDBank',
+            '970441' => 'VIB',
+        ];
+
         return [
-            'bank_name' => 'Vietcombank',
+            'bank_name' => $bankNames[$this->bankBin] ?? 'Ngân hàng',
             'bank_bin' => $this->bankBin,
             'account_number' => $this->accountNumber,
             'account_holder' => $this->accountHolder,

@@ -27,7 +27,7 @@ class VNPayService
         $vnp_TxnRef = $orderId;
         $vnp_OrderInfo = $orderInfo;
         $vnp_OrderType = 'billpayment';
-        $vnp_Amount = $amount * 100; // VNPay yêu cầu nhân 100
+        $vnp_Amount = (int) round($amount * 100);
         $vnp_Locale = 'vn';
         $vnp_CreateDate = date('YmdHis');
         $vnp_IpAddr = request()->ip() ?? '127.0.0.1';

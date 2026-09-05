@@ -44,6 +44,9 @@ class ProfileController extends Controller
 
         $user->update(['password' => Hash::make($request->password)]);
 
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return back()->with('success', 'Đổi mật khẩu thành công.');
     }
 }
