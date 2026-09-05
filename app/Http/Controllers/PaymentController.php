@@ -7,6 +7,7 @@ use App\Services\VNPayService;
 use App\Services\VietQRService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -62,15 +63,17 @@ class PaymentController extends Controller
             $order = Order::find($result['txn_ref']);
 
             if ($order && $order->user_id === Auth::id()) {
-                $order->update([
-                    'vnpay_txn_ref' => $result['txn_ref'],
-                    'vnpay_transaction_no' => $result['transaction_no'],
-                    'vnpay_response_code' => $result['response_code'],
-                    'vnpay_bank_code' => $result['bank_code'],
-                    'paid_at' => now(),
-                ]);
+                DB::transaction(function () use ($order, $result) {
+                    $order->update([
+                        'vnpay_txn_ref' => $result['txn_ref'],
+                        'vnpay_transaction_no' => $result['transaction_no'],
+                        'vnpay_response_code' => $result['response_code'],
+                        'vnpay_bank_code' => $result['bank_code'],
+                        'paid_at' => now(),
+                    ]);
 
-                $order->logStatusChange('completed', 'Thanh toán VNPay thành công - Mã GD: ' . $result['transaction_no'], 'VNPay');
+                    $order->logStatusChange('completed', 'Thanh toán VNPay thành công - Mã GD: ' . $result['transaction_no'], 'VNPay');
+                });
 
                 return redirect()->route('payment.result', [
                     'order' => $order->id,

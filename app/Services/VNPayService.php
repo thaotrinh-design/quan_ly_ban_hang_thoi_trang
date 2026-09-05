@@ -30,7 +30,7 @@ class VNPayService
         $vnp_Amount = $amount * 100; // VNPay yêu cầu nhân 100
         $vnp_Locale = 'vn';
         $vnp_CreateDate = date('YmdHis');
-        $vnp_IpAddr = request()->ip();
+        $vnp_IpAddr = request()->ip() ?? '127.0.0.1';
 
         $inputData = [
             'vnp_Version' => '2.1.0',
@@ -74,7 +74,7 @@ class VNPayService
         $vnp_HashSecret = $this->vnp_HashSecret;
         $verifyHash = hash_hmac('sha512', $query, $vnp_HashSecret);
 
-        $isValid = $verifyHash === $vnp_SecureHash;
+        $isValid = hash_equals($verifyHash, $vnp_SecureHash);
 
         return [
             'is_valid' => $isValid,

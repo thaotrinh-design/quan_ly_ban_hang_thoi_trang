@@ -84,8 +84,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Payment routes
     Route::get('/payment/vietqr/{order}', [PaymentController::class, 'vietqr'])->name('payment.vietqr');
-    Route::get('/payment/vnpay/{order}', [PaymentController::class, 'vnpayPayment'])->name('payment.vnpay');
     Route::get('/payment/vnpay/callback', [PaymentController::class, 'vnpayCallback'])->name('payment.vnpay.callback');
+    Route::get('/payment/vnpay/{order}', [PaymentController::class, 'vnpayPayment'])->name('payment.vnpay');
     Route::get('/payment/result', [PaymentController::class, 'paymentResult'])->name('payment.result');
 });
 

@@ -47,7 +47,7 @@ class ChatService
     private function generateReply(string $message, ?int $userId): string
     {
         $text = Str::lower(trim($message));
-        $store = config('store');
+        $store = config('store') ?? [];
 
         $productReply = $this->searchProductsAdvice($text);
         if ($productReply) {
@@ -69,7 +69,7 @@ class ChatService
                         number_format($latest->total) . "đ.";
                 }
             }
-            return 'Đăng nhập và vào mục Đơn hàng để theo dõi. Hotline: ' . $store['phone'];
+            return 'Đăng nhập và vào mục Đơn hàng để theo dõi. Hotline: ' . ($store['phone'] ?? '');
         }
 
         if ($this->matches($text, ['giảm giá', 'voucher', 'mã', 'coupon', 'khuyến mãi'])) {
@@ -77,11 +77,11 @@ class ChatService
         }
 
         if ($this->matches($text, ['mua tại chỗ', 'tại chỗ', 'cửa hàng', 'đến lấy'])) {
-            return "Mua tại chỗ tại {$store['address']}. Chọn \"Mua tại chỗ\" khi thanh toán, thanh toán COD tại quầy hoặc chuyển khoản (có mã QR). Giờ mở cửa: {$store['hours']}.";
+            return "Mua tại chỗ tại {$store['address'] ?? ''}. Chọn \"Mua tại chỗ\" khi thanh toán, thanh toán COD tại quầy hoặc chuyển khoản (có mã QR). Giờ mở cửa: {$store['hours'] ?? ''}.";
         }
 
         if ($this->matches($text, ['đổi trả', 'hoàn tiền', 'trả hàng', 'đổi size'])) {
-            return 'Đổi trả trong 7 ngày, sản phẩm còn tem. Mang hóa đơn đến ' . $store['address'] . ' hoặc gọi ' . $store['phone'] . '.';
+            return 'Đổi trả trong 7 ngày, sản phẩm còn tem. Mang hóa đơn đến ' . ($store['address'] ?? '') . ' hoặc gọi ' . ($store['phone'] ?? '') . '.';
         }
 
         if ($this->matches($text, ['giao hàng', 'ship', 'vận chuyển', 'bao lâu', 'mấy ngày', 'thời gian giao', 'giao về', 'địa chỉ'])) {
@@ -89,7 +89,7 @@ class ChatService
         }
 
         if ($this->matches($text, ['liên hệ', 'địa chỉ', 'hotline', 'facebook', 'tiktok', 'map', 'bản đồ'])) {
-            return "📍 {$store['address']}\n📞 {$store['phone']}\n✉️ {$store['email']}\n🕐 {$store['hours']}\nXem bản đồ Google ở cuối trang \"Liên hệ chúng tôi\".";
+            return "📍 " . ($store['address'] ?? '') . "\n📞 " . ($store['phone'] ?? '') . "\n✉️ " . ($store['email'] ?? '') . "\n🕐 " . ($store['hours'] ?? '') . "\nXem bản đồ Google ở cuối trang \"Liên hệ chúng tôi\".";
         }
 
         if ($this->matches($text, ['cảm ơn', 'thanks', 'thank'])) {
@@ -97,7 +97,7 @@ class ChatService
         }
 
         if ($this->matches($text, ['phản hồi', 'góp ý', 'khiếu nại'])) {
-            return 'Đã ghi nhận phản hồi. Bộ phận CSKH liên hệ trong 24h qua ' . $store['phone'] . '.';
+            return 'Đã ghi nhận phản hồi. Bộ phận CSKH liên hệ trong 24h qua ' . ($store['phone'] ?? '') . '.';
         }
 
         return 'Bạn có thể hỏi tên sản phẩm cụ thể (vd: "áo hoodie giá bao nhiêu", "quần jean size L"), hoặc về giao hàng, mua tại chỗ, mã giảm giá.';
@@ -139,8 +139,9 @@ class ChatService
         if (!empty($words)) {
             $query->where(function ($q) use ($words) {
                 foreach ($words as $word) {
-                    $q->orWhere('name', 'like', "%{$word}%")
-                        ->orWhere('description', 'like', "%{$word}%");
+                    $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $word);
+                    $q->orWhere('name', 'like', "%{$escaped}%")
+                        ->orWhere('description', 'like', "%{$escaped}%");
                 }
             });
         }
@@ -177,7 +178,7 @@ class ChatService
         foreach ($products as $p) {
             $sizes = implode(', ', $p->getSizesList());
             $colors = implode(', ', $p->getColorsList());
-            $lines[] = "• {$p->name} ({$p->category->name})";
+            $lines[] = "• {$p->name}" . ($p->category ? " ({$p->category->name})" : "");
             $priceText = $p->hasDiscount()
                 ? number_format($p->getSellingPrice()) . 'đ (giảm ' . $p->discount_percent . '%, gốc ' . number_format($p->price) . 'đ)'
                 : number_format($p->price) . 'đ';

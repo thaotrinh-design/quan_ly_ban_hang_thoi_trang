@@ -156,6 +156,11 @@ class CheckoutController extends Controller
             }
 
             foreach ($checkoutItems as $item) {
+                $currentStock = $item->product->fresh()->stock;
+                if ($currentStock < $item->quantity) {
+                    throw new \RuntimeException("Sản phẩm \"{$item->product->name}\" chỉ còn {$currentStock} sản phẩm trong kho.");
+                }
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
@@ -167,11 +172,11 @@ class CheckoutController extends Controller
 
                 $item->product->decrement('stock', $item->quantity);
 
-                // Giảm tồn kho variant nếu có
                 if ($item->size && $item->color) {
                     ProductVariant::where('product_id', $item->product_id)
                         ->where('size', $item->size)
                         ->where('color', $item->color)
+                        ->where('stock', '>=', $item->quantity)
                         ->decrement('stock', $item->quantity);
                 }
             }

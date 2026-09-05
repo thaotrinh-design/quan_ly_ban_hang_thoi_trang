@@ -150,25 +150,22 @@ class Product extends Model
      */
     public function scopeSearch(Builder $query, ?string $keyword): Builder
     {
-        if (!$keyword) {
+        $keyword = trim($keyword ?? '');
+
+        if ($keyword === '') {
             return $query;
         }
 
-        $keyword = trim($keyword);
+        $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $keyword);
 
-        $query->where(function ($q) use ($keyword) {
-            // Tìm theo tên sản phẩm (ưu tiên cao nhất)
-            $q->where('name', 'like', "%{$keyword}%")
-                // Tìm theo mô tả
-                ->orWhere('description', 'like', "%{$keyword}%")
-                // Tìm theo danh mục
-                ->orWhereHas('category', function ($cq) use ($keyword) {
-                    $cq->where('name', 'like', "%{$keyword}%");
+        $query->where(function ($q) use ($escaped) {
+            $q->where('name', 'like', "%{$escaped}%")
+                ->orWhere('description', 'like', "%{$escaped}%")
+                ->orWhereHas('category', function ($cq) use ($escaped) {
+                    $cq->where('name', 'like', "%{$escaped}%");
                 })
-                // Tìm theo màu có sẵn
-                ->orWhere('available_colors', 'like', "%{$keyword}%")
-                // Tìm theo size có sẵn
-                ->orWhere('available_sizes', 'like', "%{$keyword}%");
+                ->orWhere('available_colors', 'like', "%{$escaped}%")
+                ->orWhere('available_sizes', 'like', "%{$escaped}%");
         });
 
         return $query;

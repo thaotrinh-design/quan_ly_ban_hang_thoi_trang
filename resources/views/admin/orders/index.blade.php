@@ -26,7 +26,7 @@
         @foreach($orders as $order)
         <tr>
             <td>#{{ $order->id }}</td>
-            <td>{{ $order->user->name ?? '' }}</td>
+            <td>{{ $order->user?->name ?? 'N/A' }}</td>
             <td>{{ number_format($order->total) }} VNĐ</td>
             <td>{{ $order->status_label }}</td>
             <td>{{ $order->created_at->format('d/m/Y') }}</td>

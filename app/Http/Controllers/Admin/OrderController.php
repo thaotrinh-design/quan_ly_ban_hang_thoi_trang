@@ -15,7 +15,10 @@ class OrderController extends Controller
         $query = Order::with('user')->orderByDesc('id');
 
         if ($request->status) {
-            $query->where('status', $request->status);
+            $allowedStatuses = ['pending', 'processing', 'shipping', 'completed', 'cancelled'];
+            if (in_array($request->status, $allowedStatuses)) {
+                $query->where('status', $request->status);
+            }
         }
 
         $orders = $query->paginate(15)->withQueryString();

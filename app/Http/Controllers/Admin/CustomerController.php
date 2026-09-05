@@ -13,10 +13,11 @@ class CustomerController extends Controller
         $query = User::where('role', 'customer')->orderByDesc('id');
 
         if ($request->keyword) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', "%{$request->keyword}%")
-                    ->orWhere('email', 'like', "%{$request->keyword}%")
-                    ->orWhere('phone', 'like', "%{$request->keyword}%");
+            $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $request->keyword);
+            $query->where(function ($q) use ($escaped) {
+                $q->where('name', 'like', "%{$escaped}%")
+                    ->orWhere('email', 'like', "%{$escaped}%")
+                    ->orWhere('phone', 'like', "%{$escaped}%");
             });
         }
 
@@ -42,6 +43,10 @@ class CustomerController extends Controller
     {
         if ($user->role !== 'customer') {
             abort(403);
+        }
+
+        if ($user->orders()->count() > 0) {
+            return back()->with('error', 'Không thể xóa khách hàng có đơn hàng.');
         }
 
         $user->delete();

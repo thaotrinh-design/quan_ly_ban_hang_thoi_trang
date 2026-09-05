@@ -36,20 +36,22 @@ class OrderController extends Controller
             abort(403);
         }
 
-        // Atomic update: chỉ cập nhật nếu chưa bị hủy (tránh race condition)
-        $affected = Order::where('id', $order->id)
-            ->where('status', '!=', 'cancelled')
-            ->update(['status' => 'cancelled']);
-
-        if ($affected === 0) {
-            return back()->with('error', 'Đơn hàng đã được hủy trước đó.');
+        if (!$order->canBeCancelled()) {
+            return back()->with('error', 'Đơn hàng không thể hủy ở trạng thái hiện tại.');
         }
 
-        // Load lại sau khi update
-        $order->refresh();
-        $order->load('items.product');
-
         DB::transaction(function () use ($order) {
+            $affected = Order::where('id', $order->id)
+                ->where('status', '!=', 'cancelled')
+                ->update(['status' => 'cancelled']);
+
+            if ($affected === 0) {
+                throw new \RuntimeException('Đơn hàng đã được hủy trước đó.');
+            }
+
+            $order->refresh();
+            $order->load('items.product');
+
             foreach ($order->items as $item) {
                 if ($item->product) {
                     $item->product->increment('stock', $item->quantity);

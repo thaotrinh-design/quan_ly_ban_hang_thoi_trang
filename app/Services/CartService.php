@@ -82,8 +82,9 @@ class CartService
             $variantStock = $product->getStockByVariant($item->size, $item->color);
 
             if ($quantity > $variantStock) {
+                $variantLabel = $item->size && $item->color ? " ({$item->size}/{$item->color})" : "";
                 throw new \InvalidArgumentException(
-                    "Sản phẩm \"{$product->name}\" ({$item->size}/{$item->color}) chỉ còn {$variantStock} sản phẩm trong kho."
+                    "Sản phẩm \"{$product->name}\"{$variantLabel} chỉ còn {$variantStock} sản phẩm trong kho."
                 );
             }
             $item->update(['quantity' => $quantity]);
@@ -98,6 +99,8 @@ class CartService
 
     public function getTotal(Cart $cart): float
     {
+        $cart->loadMissing('items.product');
+
         return $cart->items->sum(function ($item) {
             if (!$item->product || $item->product->trashed()) {
                 return 0;

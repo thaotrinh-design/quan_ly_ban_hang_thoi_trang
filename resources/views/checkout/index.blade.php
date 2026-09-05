@@ -49,8 +49,8 @@
                     <h5>Thông tin nhận tại cửa hàng</h5>
                     <div class="alert alert-info">
                         <i class="fa-solid fa-location-dot me-1"></i>
-                        <strong>Cửa hàng:</strong> {{ $store['address'] }}<br>
-                        <i class="fa-solid fa-clock me-1"></i> {{ $store['hours'] }}
+                        <strong>Cửa hàng:</strong> {{ $store['address'] ?? '' }}<br>
+                        <i class="fa-solid fa-clock me-1"></i> {{ $store['hours'] ?? '' }}
                     </div>
                     <div class="mb-2">
                         <label>Họ tên</label>
@@ -79,10 +79,10 @@
 
                 <div id="bank-qr-box" class="card p-3 mb-3 d-none text-center">
                     <h6>Quét mã QR để thanh toán</h6>
-                    <img src="{{ $store['bank_qr'] }}" alt="QR thanh toán" class="mb-2" width="220">
+                    <img src="{{ $store['bank_qr'] ?? '' }}" alt="QR thanh toán" class="mb-2" width="220">
                     <p class="small mb-0">
-                        {{ $store['bank_name'] }} | STK: <strong>{{ $store['bank_account'] }}</strong><br>
-                        Chủ TK: {{ $store['bank_holder'] }}<br>
+                        {{ $store['bank_name'] ?? '' }} | STK: <strong>{{ $store['bank_account'] ?? '' }}</strong><br>
+                        Chủ TK: {{ $store['bank_holder'] ?? '' }}<br>
                         Nội dung: Thanh toan don hang + SĐT
                     </p>
                 </div>

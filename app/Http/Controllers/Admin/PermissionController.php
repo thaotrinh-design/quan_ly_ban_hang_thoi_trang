@@ -45,6 +45,10 @@ class PermissionController extends Controller
 
     public function assignRole(Request $request, User $user)
     {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Không thể thay đổi quyền của chính mình.');
+        }
+
         $request->validate([
             'role_id' => 'nullable|exists:roles,id',
         ]);

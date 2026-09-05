@@ -68,7 +68,7 @@ class AuthController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect()->route('login');
     }
 
     // Hien thi form quen mat khau
@@ -81,7 +81,7 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
     $request->validate([
-        'account' => 'required'
+        'account' => 'required|string|max:255'
     ]);
 
     $user = User::where('email', $request->account)
@@ -96,7 +96,7 @@ class AuthController extends Controller
     }
 
     // Tạo token expire trong 15 phút
-    $token = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . now()->addMinutes(15)->timestamp, env('APP_KEY'));
+    $token = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . now()->addMinutes(15)->timestamp, config('app.key'));
     $expires = now()->addMinutes(15)->timestamp;
 
     return redirect()->route('reset.password', ['id' => $user->id, 'token' => $token, 'expires' => $expires]);
@@ -119,7 +119,7 @@ class AuthController extends Controller
         abort(403, 'Liên kết đặt lại mật khẩu đã hết hạn.');
     }
 
-    $expectedToken = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . $expires, env('APP_KEY'));
+    $expectedToken = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . $expires, config('app.key'));
 
     if (!hash_equals($expectedToken, $token)) {
         abort(403, 'Liên kết đặt lại mật khẩu không hợp lệ.');
@@ -145,7 +145,7 @@ class AuthController extends Controller
         abort(403, 'Liên kết đặt lại mật khẩu đã hết hạn.');
     }
 
-    $expectedToken = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . $expires, env('APP_KEY'));
+    $expectedToken = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . $expires, config('app.key'));
 
     if (!hash_equals($expectedToken, $token)) {
         abort(403, 'Liên kết đặt lại mật khẩu không hợp lệ.');
@@ -162,7 +162,7 @@ class AuthController extends Controller
     $user->password = Hash::make($request->password);
     $user->save();
 
-    return redirect('/login')->with('success', 'Đổi mật khẩu thành công.');
+    return redirect()->route('login')->with('success', 'Đổi mật khẩu thành công.');
 }
     //Hien thi form dang ky
     public function showRegister()
@@ -201,7 +201,7 @@ class AuthController extends Controller
         'password' => Hash::make($request->password)
     ]);
 
-    return redirect('/login')
+    return redirect()->route('login')
         ->with(
             'success',
             'Đăng ký tài khoản thành công. Vui lòng đăng nhập để tiếp tục.'

@@ -48,6 +48,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!searchInput || !suggestionsDiv) return;
 
+    function searchEscapeHtml(text) {
+        const d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
+    }
+
     searchInput.addEventListener('input', function() {
         clearTimeout(debounceTimer);
         const keyword = this.value.trim();
@@ -70,14 +76,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     data.forEach(item => {
                         if (item.type === 'category') {
                             html += `<a href="{{ route('shop.index') }}?keyword=${encodeURIComponent(item.name)}" class="suggestion-item suggestion-category">
-                                <i class="fa-solid fa-folder me-2"></i>${item.name}
+                                <i class="fa-solid fa-folder me-2"></i>${searchEscapeHtml(item.name)}
                             </a>`;
                         } else {
                             const discountBadge = item.original_price > item.price ? `<span class="badge bg-danger ms-2">-${Math.round((1 - item.price/item.original_price) * 100)}%</span>` : '';
                             html += `<a href="{{ route('shop.index') }}?keyword=${encodeURIComponent(item.name)}" class="suggestion-item">
-                                <img src="${item.image}" class="suggestion-img" onerror="this.style.display='none'">
+                                <img src="${searchEscapeHtml(item.image)}" class="suggestion-img" onerror="this.style.display='none'">
                                 <div class="suggestion-info">
-                                    <div class="suggestion-name">${item.name}${discountBadge}</div>
+                                    <div class="suggestion-name">${searchEscapeHtml(item.name)}${discountBadge}</div>
                                     <div class="suggestion-price">${item.price.toLocaleString('vi-VN')}đ</div>
                                 </div>
                             </a>`;

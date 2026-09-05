@@ -12,7 +12,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category', 'variants')->withTrashed()->get();
+        $products = Product::with('category', 'variants')->withTrashed()->orderByDesc('id')->paginate(20)->withQueryString();
 
         return view('products.index', compact('products'));
     }
@@ -174,6 +174,11 @@ class ProductController extends Controller
     public function forceDelete(int $id)
     {
         $product = Product::withTrashed()->findOrFail($id);
+
+        if ($product->orders()->count() > 0) {
+            return back()->with('error', 'Không thể xóa vĩnh viễn sản phẩm có đơn hàng.');
+        }
+
         $product->forceDelete();
 
         return redirect()
