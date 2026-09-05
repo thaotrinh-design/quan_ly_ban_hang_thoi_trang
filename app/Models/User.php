@@ -33,6 +33,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => 'string',
+            'role' => 'string',
         ];
     }
 
@@ -68,7 +70,18 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        if ($this->role === 'admin') {
+            return true;
+        }
+
+        if ($this->role_id) {
+            $role = $this->assignedRole;
+            if ($role && $role->name === 'admin') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function hasPurchasedProduct(int $productId): bool

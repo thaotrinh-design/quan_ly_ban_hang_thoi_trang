@@ -341,10 +341,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const messages = document.getElementById('chat-messages');
     const csrf = '{{ csrf_token() }}';
 
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     function addMsg(text, sender) {
         const div = document.createElement('div');
         div.className = 'chat-msg ' + sender;
-        div.innerHTML = '<div class="bubble">' + text.replace(/\n/g, '<br>') + '</div>';
+        div.innerHTML = '<div class="bubble">' + escapeHtml(text).replace(/\n/g, '<br>') + '</div>';
         messages.appendChild(div);
         messages.scrollTop = messages.scrollHeight;
     }

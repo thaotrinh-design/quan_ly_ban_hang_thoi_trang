@@ -71,6 +71,7 @@ class ShopController extends Controller
         $product->load(['category', 'reviews.user']);
 
         $relatedProducts = Product::active()
+            ->with('category')
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->limit(4)

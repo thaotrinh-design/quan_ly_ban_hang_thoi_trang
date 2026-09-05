@@ -37,7 +37,7 @@
                         <small class="text-muted">Địa chỉ đã lưu:</small>
                         @foreach($addresses as $addr)
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" onclick="fillAddress('{{ $addr->receiver_name }}','{{ $addr->phone }}','{{ $addr->address }}')">
+                            <input class="form-check-input" type="radio" onclick="fillAddress(@js($addr->receiver_name),@js($addr->phone),@js($addr->address))">
                             <label class="form-check-label">{{ $addr->receiver_name }} - {{ $addr->address }}</label>
                         </div>
                         @endforeach

@@ -34,7 +34,7 @@
         <tbody>
             @foreach($order->items as $item)
             <tr>
-                <td>{{ $item->product->name ?? 'N/A' }} @if($item->size)<br><small>{{ $item->size }} / {{ $item->color }}</small>@endif</td>
+                <td>{{ $item->product?->name ?? 'N/A' }} @if($item->size)<br><small>{{ $item->size }} / {{ $item->color }}</small>@endif</td>
                 <td>{{ $item->quantity }}</td>
                 <td>{{ number_format($item->price) }} VNĐ</td>
                 <td>{{ number_format($item->price * $item->quantity) }} VNĐ</td>

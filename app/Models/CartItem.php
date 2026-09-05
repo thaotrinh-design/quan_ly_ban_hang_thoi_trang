@@ -14,6 +14,13 @@ class CartItem extends Model
         'quantity',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+        ];
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class);

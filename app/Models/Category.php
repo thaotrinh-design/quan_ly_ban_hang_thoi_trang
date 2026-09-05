@@ -11,8 +11,15 @@ class Category extends Model
         'slug',
         'description',
         'image',
-        'status'
+        'status',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => 'boolean',
+        ];
+    }
 
     public function products()
     {

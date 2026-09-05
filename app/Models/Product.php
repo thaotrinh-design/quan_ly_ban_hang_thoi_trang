@@ -33,6 +33,7 @@ class Product extends Model
             'status' => 'boolean',
             'is_featured' => 'boolean',
             'price' => 'float',
+            'stock' => 'integer',
             'discount_percent' => 'integer',
             'available_sizes' => 'array',
             'available_colors' => 'array',

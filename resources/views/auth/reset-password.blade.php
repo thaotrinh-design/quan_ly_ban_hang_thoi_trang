@@ -8,7 +8,7 @@
 <h2>Đặt lại mật khẩu</h2>
 
 <form method="POST"
-      action="{{ url('/reset-password/' . $user->id) }}">
+      action="{{ route('reset.password', $user->id) }}">
 
     @csrf
 

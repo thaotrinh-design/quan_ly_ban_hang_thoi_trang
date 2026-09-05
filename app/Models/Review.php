@@ -13,6 +13,13 @@ class Review extends Model
         'comment',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'star' => 'integer',
+        ];
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

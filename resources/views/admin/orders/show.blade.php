@@ -17,7 +17,7 @@
     <tbody>
         @foreach($order->items as $item)
         <tr>
-            <td>{{ $item->product->name ?? 'N/A' }}</td>
+            <td>{{ $item->product?->name ?? 'N/A' }}</td>
             <td>{{ $item->quantity }}</td>
             <td>{{ number_format($item->price) }}</td>
             <td>{{ number_format($item->price * $item->quantity) }}</td>

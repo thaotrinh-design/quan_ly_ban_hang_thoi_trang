@@ -12,8 +12,8 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $from = $request->from ?? now()->startOfMonth()->toDateString();
-        $to = $request->to ?? now()->toDateString();
+        $from = $request->from && strtotime($request->from) ? $request->from : now()->startOfMonth()->toDateString();
+        $to = $request->to && strtotime($request->to) ? $request->to : now()->toDateString();
 
         $revenueByDay = Order::where('status', 'completed')
             ->whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
@@ -50,8 +50,8 @@ class ReportController extends Controller
 
     public function export(Request $request)
     {
-        $from = $request->from ?? now()->startOfMonth()->toDateString();
-        $to = $request->to ?? now()->toDateString();
+        $from = $request->from && strtotime($request->from) ? $request->from : now()->startOfMonth()->toDateString();
+        $to = $request->to && strtotime($request->to) ? $request->to : now()->toDateString();
 
         $orders = Order::whereBetween('created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
             ->with('user')
@@ -71,7 +71,7 @@ class ReportController extends Controller
             foreach ($orders as $order) {
                 fputcsv($file, [
                     $order->id,
-                    $order->user->name ?? '',
+                    $order->user?->name ?? '',
                     $order->total,
                     $order->status,
                     $order->created_at,

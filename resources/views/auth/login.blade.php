@@ -195,7 +195,7 @@
 
             <div class="remember">
                 <label>
-                    <input type="checkbox">
+                    <input type="checkbox" name="remember">
                     Ghi nhớ đăng nhập
                 </label>
 

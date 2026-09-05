@@ -47,11 +47,12 @@ class ProductController extends Controller
             foreach ($sizes as $size) {
                 foreach ($colors as $color) {
                     $key = $size . '_' . $color;
-                    $totalStock += (int) ($variantStocks[$key] ?? 0);
+                    $stock = max(0, (int) ($variantStocks[$key] ?? 0));
+                    $totalStock += $stock;
                 }
             }
         } else {
-            $totalStock = (int) ($request->input('stock_simple', 0));
+            $totalStock = max(0, (int) ($request->input('stock_simple', 0)));
         }
 
         $imagePath = null;
@@ -97,9 +98,10 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $request->validate([
-            'name' => 'required',
-            'category_id' => 'required',
-            'price' => 'required',
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'price' => 'required|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $sizes = $this->parseList($request->available_sizes);
@@ -112,11 +114,12 @@ class ProductController extends Controller
             foreach ($sizes as $size) {
                 foreach ($colors as $color) {
                     $key = $size . '_' . $color;
-                    $totalStock += (int) ($variantStocks[$key] ?? 0);
+                    $stock = max(0, (int) ($variantStocks[$key] ?? 0));
+                    $totalStock += $stock;
                 }
             }
         } else {
-            $totalStock = (int) ($request->input('stock_simple', $product->stock));
+            $totalStock = max(0, (int) ($request->input('stock_simple', $product->stock)));
         }
 
         $imagePath = $product->image;
@@ -128,6 +131,7 @@ class ProductController extends Controller
         $product->update([
             'category_id' => $request->category_id,
             'name' => $request->name,
+            'slug' => Str::slug($request->name) . '-' . $product->id,
             'description' => $request->description,
             'price' => $request->price,
             'stock' => $totalStock,
@@ -137,10 +141,8 @@ class ProductController extends Controller
             'image' => $imagePath,
         ]);
 
-        // Xóa variants cũ
         $product->variants()->delete();
 
-        // Tạo variants mới chỉ khi có size + color
         if ($hasVariants) {
             $this->syncVariants($product, $request);
         }
@@ -150,10 +152,13 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        if ($product->orders()->count() > 0) {
+            return back()->with('error', 'Không thể xóa sản phẩm có đơn hàng. Hãy ẩn sản phẩm thay vì xóa.');
+        }
+
         $product->delete();
 
-        return redirect()
-            ->route('admin.products.index');
+        return redirect()->route('admin.products.index')->with('success', 'Đã xóa sản phẩm.');
     }
 
     public function restore(int $id)
@@ -185,14 +190,10 @@ class ProductController extends Controller
         $colors = $this->parseList($request->available_colors);
         $variantStocks = $request->input('variant_stock', []);
 
-        // Xóa variants cũ
-        $product->variants()->delete();
-
-        // Tạo variants mới
         foreach ($sizes as $size) {
             foreach ($colors as $color) {
                 $key = $size . '_' . $color;
-                $stock = (int) ($variantStocks[$key] ?? 0);
+                $stock = max(0, (int) ($variantStocks[$key] ?? 0));
 
                 ProductVariant::create([
                     'product_id' => $product->id,
@@ -203,7 +204,6 @@ class ProductController extends Controller
             }
         }
 
-        // Cập nhật tổng stock từ variants
         $totalStock = $product->getTotalVariantStock();
         $product->update(['stock' => $totalStock]);
     }

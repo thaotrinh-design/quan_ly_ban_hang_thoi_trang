@@ -109,7 +109,7 @@ class Order extends Model
             'order_id' => $this->id,
             'status' => $newStatus,
             'note' => $note ?? "Thay đổi từ \"$oldStatus\" sang \"$newStatus\"",
-            'changed_by' => $changedBy ?? (auth()->check() ? auth()->user()->name : 'system'),
+            'changed_by' => $changedBy ?? (auth()->check() ? auth()->user()?->name ?? 'system' : 'system'),
             'created_at' => now(),
         ]);
     }

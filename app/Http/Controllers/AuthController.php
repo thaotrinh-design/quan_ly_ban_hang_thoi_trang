@@ -95,7 +95,7 @@ class AuthController extends Controller
         );
     }
 
-    return redirect('/reset-password/' . $user->id);
+    return redirect()->route('reset.password', $user->id);
     }
 
     //Hien thi form doi mat khau

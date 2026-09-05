@@ -32,6 +32,10 @@ class Coupon extends Model
     {
         $today = Carbon::today();
 
+        if (!$this->start_date || !$this->end_date) {
+            return false;
+        }
+
         return $this->quantity > 0
             && $today->gte($this->start_date)
             && $today->lte($this->end_date);

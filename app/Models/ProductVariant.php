@@ -32,7 +32,7 @@ class ProductVariant extends Model
      */
     public function getLabelAttribute(): string
     {
-        return "{$this->size} / {$this->color}";
+        return ($this->size ?? '?') . ' / ' . ($this->color ?? '?');
     }
 
     /**

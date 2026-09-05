@@ -20,7 +20,7 @@
 <div class="container shop-content pb-5">
     <div class="row">
         <div class="col-lg-3 mb-4">
-            @include('shop._sidebar', ['filterAction' => ($featuredOnly ?? false) ? route('shop.featured') : route('shop.index')])
+            @include('shop._sidebar', ['filterAction' => ($activeTab ?? '') === 'featured' ? route('shop.featured') : route('shop.index')])
         </div>
         <div class="col-lg-9">
             <div class="row">

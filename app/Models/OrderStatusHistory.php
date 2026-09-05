@@ -36,7 +36,7 @@ class OrderStatusHistory extends Model
             'shipping' => 'Đang giao hàng',
             'completed' => 'Hoàn thành',
             'cancelled' => 'Đã hủy',
-            default => ucfirst($this->status),
+            default => ucfirst((string) $this->status),
         };
     }
 }

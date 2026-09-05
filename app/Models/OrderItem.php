@@ -15,6 +15,14 @@ class OrderItem extends Model
         'price',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+            'price' => 'float',
+        ];
+    }
+
     public function order()
     {
         return $this->belongsTo(Order::class);

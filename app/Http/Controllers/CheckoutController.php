@@ -30,7 +30,7 @@ class CheckoutController extends Controller
                 ->with('error', 'Giỏ hàng trống hoặc chưa chọn sản phẩm cần thanh toán.');
         }
 
-        $total = $checkoutItems->sum(fn ($item) => $item->product->getSellingPrice() * $item->quantity);
+        $total = $checkoutItems->sum(fn ($item) => $item->product ? $item->product->getSellingPrice() * $item->quantity : 0);
         $addresses = $user->addresses;
         $store = config('store');
 

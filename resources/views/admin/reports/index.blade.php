@@ -30,7 +30,7 @@
     <tbody>
         @forelse($bestSelling as $item)
         <tr>
-            <td>{{ $item->product->name ?? 'N/A' }}</td>
+            <td>{{ $item->product?->name ?? 'N/A' }}</td>
             <td>{{ $item->total_sold }}</td>
             <td>{{ number_format($item->revenue) }} VNĐ</td>
         </tr>
