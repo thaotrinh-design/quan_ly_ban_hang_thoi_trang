@@ -47,33 +47,34 @@ class OrderController extends Controller
 
             if ($request->status === 'cancelled' && in_array($order->status, $cancellableStatuses)) {
                 foreach ($order->items as $item) {
-                    if ($item->product) {
-                        $item->product->increment('stock', $item->quantity);
-                    }
                     if ($item->size && $item->color) {
                         ProductVariant::where('product_id', $item->product_id)
                             ->where('size', $item->size)
                             ->where('color', $item->color)
                             ->increment('stock', $item->quantity);
+                    } elseif ($item->product) {
+                        $item->product->increment('stock', $item->quantity);
                     }
                 }
             } elseif ($order->status === 'cancelled' && $request->status !== 'cancelled') {
                 $insufficientItems = [];
                 foreach ($order->items as $item) {
-                    if ($item->product) {
+                    if ($item->size && $item->color) {
+                        $decremented = ProductVariant::where('product_id', $item->product_id)
+                            ->where('size', $item->size)
+                            ->where('color', $item->color)
+                            ->where('stock', '>=', $item->quantity)
+                            ->decrement('stock', $item->quantity);
+                        if ($decremented === 0) {
+                            $insufficientItems[] = $item->product->name . " ({$item->size}/{$item->color})";
+                        }
+                    } elseif ($item->product) {
                         $decremented = Product::where('id', $item->product_id)
                             ->where('stock', '>=', $item->quantity)
                             ->decrement('stock', $item->quantity);
                         if ($decremented === 0) {
                             $insufficientItems[] = $item->product->name;
                         }
-                    }
-                    if ($item->size && $item->color) {
-                        ProductVariant::where('product_id', $item->product_id)
-                            ->where('size', $item->size)
-                            ->where('color', $item->color)
-                            ->where('stock', '>=', $item->quantity)
-                            ->decrement('stock', $item->quantity);
                     }
                 }
                 if (!empty($insufficientItems)) {

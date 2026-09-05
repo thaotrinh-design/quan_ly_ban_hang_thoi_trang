@@ -64,7 +64,7 @@ class PermissionController extends Controller
             }
         }
 
-        $user->update(['role_id' => $request->role_id]);
+        $user->update(['role_id' => $request->role_id, 'role' => 'customer']);
 
         return back()->with('success', 'Phân quyền người dùng thành công.');
     }

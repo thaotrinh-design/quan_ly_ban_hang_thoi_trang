@@ -53,15 +53,13 @@ class OrderController extends Controller
             $order->load('items.product');
 
             foreach ($order->items as $item) {
-                if ($item->product) {
-                    $item->product->increment('stock', $item->quantity);
-                }
-
                 if ($item->size && $item->color) {
                     ProductVariant::where('product_id', $item->product_id)
                         ->where('size', $item->size)
                         ->where('color', $item->color)
                         ->increment('stock', $item->quantity);
+                } elseif ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
                 }
             }
 

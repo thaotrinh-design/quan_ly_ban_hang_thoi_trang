@@ -83,8 +83,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const sizeSel = document.getElementById('modal-size');
             const colorSel = document.getElementById('modal-color');
-            sizeSel.innerHTML = '<option value="">-- Chọn size --</option>' + sizes.map(s => '<option value="'+s+'">'+s+'</option>').join('');
-            colorSel.innerHTML = '<option value="">-- Chọn màu --</option>' + colors.map(c => '<option value="'+c+'">'+c+'</option>').join('');
+            function modalEsc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+            sizeSel.innerHTML = '<option value="">-- Chọn size --</option>' + sizes.map(s => '<option value="'+modalEsc(s)+'">'+modalEsc(s)+'</option>').join('');
+            colorSel.innerHTML = '<option value="">-- Chọn màu --</option>' + colors.map(c => '<option value="'+modalEsc(c)+'">'+modalEsc(c)+'</option>').join('');
 
             // Reset stock info
             document.getElementById('modal-stock-info').classList.add('d-none');
@@ -116,10 +117,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 stockBadge.textContent = 'Còn ' + stock + ' sản phẩm';
                 quantityInput.max = stock;
                 quantityInput.value = Math.min(parseInt(quantityInput.value) || 1, stock);
+                document.getElementById('modal-confirm-btn').disabled = false;
             } else {
                 stockBadge.className = 'badge bg-danger';
                 stockBadge.textContent = 'Hết hàng';
                 quantityInput.value = 0;
+                document.getElementById('modal-confirm-btn').disabled = true;
             }
         } else {
             stockInfo.classList.add('d-none');
