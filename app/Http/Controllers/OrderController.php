@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -35,28 +36,35 @@ class OrderController extends Controller
             abort(403);
         }
 
-        if (!$order->canBeCancelled()) {
-            return back()->with('error', 'Không thể hủy đơn hàng này.');
+        // Atomic update: chỉ cập nhật nếu chưa bị hủy (tránh race condition)
+        $affected = Order::where('id', $order->id)
+            ->where('status', '!=', 'cancelled')
+            ->update(['status' => 'cancelled']);
+
+        if ($affected === 0) {
+            return back()->with('error', 'Đơn hàng đã được hủy trước đó.');
         }
 
+        // Load lại sau khi update
+        $order->refresh();
         $order->load('items.product');
 
-        foreach ($order->items as $item) {
-            // Khôi phục tồn kho sản phẩm
-            if ($item->product) {
-                $item->product->increment('stock', $item->quantity);
+        DB::transaction(function () use ($order) {
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+
+                if ($item->size && $item->color) {
+                    ProductVariant::where('product_id', $item->product_id)
+                        ->where('size', $item->size)
+                        ->where('color', $item->color)
+                        ->increment('stock', $item->quantity);
+                }
             }
 
-            // Khôi phục tồn kho variant
-            if ($item->size && $item->color) {
-                ProductVariant::where('product_id', $item->product_id)
-                    ->where('size', $item->size)
-                    ->where('color', $item->color)
-                    ->increment('stock', $item->quantity);
-            }
-        }
-
-        $order->logStatusChange('cancelled', 'Khách hàng hủy đơn hàng');
+            $order->logStatusChange('cancelled', 'Khách hàng hủy đơn hàng');
+        });
 
         return back()->with('success', 'Đã hủy đơn hàng.');
     }

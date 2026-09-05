@@ -99,6 +99,7 @@
             <div class="card p-3">
                 <h5>Đơn hàng</h5>
                 @foreach($checkoutItems as $item)
+                @if($item->product)
                 <div class="d-flex justify-content-between mb-2">
                     <span>
                         {{ $item->product->name }} x{{ $item->quantity }}
@@ -106,6 +107,7 @@
                     </span>
                     <span>{{ number_format($item->product->getSellingPrice() * $item->quantity) }} VNĐ</span>
                 </div>
+                @endif
                 @endforeach
                 <hr>
                 <div class="d-flex justify-content-between">

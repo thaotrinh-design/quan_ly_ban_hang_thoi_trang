@@ -10,7 +10,7 @@ class IsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role !== 'admin') {
+        if (!auth()->check() || !auth()->user()->isAdmin()) {
             return redirect('/')->with('error', 'Bạn không có quyền truy cập.');
         }
 

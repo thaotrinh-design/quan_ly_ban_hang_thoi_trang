@@ -95,27 +95,62 @@ class AuthController extends Controller
         );
     }
 
-    return redirect()->route('reset.password', $user->id);
+    // Tạo token expire trong 15 phút
+    $token = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . now()->addMinutes(15)->timestamp, env('APP_KEY'));
+    $expires = now()->addMinutes(15)->timestamp;
+
+    return redirect()->route('reset.password', ['id' => $user->id, 'token' => $token, 'expires' => $expires]);
     }
 
     //Hien thi form doi mat khau
-    public function showResetPassword($id)
+    public function showResetPassword(Request $request, $id)
     {
     $user = User::findOrFail($id);
 
-    return view(
-        'auth.reset-password',
-        compact('user')
-        );
+    // Xác thực token
+    $token = $request->query('token');
+    $expires = $request->query('expires');
+
+    if (!$token || !$expires || !is_numeric($expires)) {
+        abort(403, 'Liên kết đặt lại mật khẩu không hợp lệ.');
+    }
+
+    if (now()->timestamp > $expires) {
+        abort(403, 'Liên kết đặt lại mật khẩu đã hết hạn.');
+    }
+
+    $expectedToken = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . $expires, env('APP_KEY'));
+
+    if (!hash_equals($expectedToken, $token)) {
+        abort(403, 'Liên kết đặt lại mật khẩu không hợp lệ.');
+    }
+
+    return view('auth.reset-password', compact('user'));
     }
 
 
     //Cap nhat mat khau moi
-    public function resetPassword(
-    Request $request,
-    $id
-)
-{
+    public function resetPassword(Request $request, $id)
+    {
+    // Xác thực token từ query string
+    $token = $request->query('token');
+    $expires = $request->query('expires');
+    $user = User::findOrFail($id);
+
+    if (!$token || !$expires || !is_numeric($expires)) {
+        abort(403, 'Liên kết đặt lại mật khẩu không hợp lệ.');
+    }
+
+    if (now()->timestamp > $expires) {
+        abort(403, 'Liên kết đặt lại mật khẩu đã hết hạn.');
+    }
+
+    $expectedToken = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . $expires, env('APP_KEY'));
+
+    if (!hash_equals($expectedToken, $token)) {
+        abort(403, 'Liên kết đặt lại mật khẩu không hợp lệ.');
+    }
+
     $request->validate([
         'password' => [
             'required',
@@ -124,19 +159,10 @@ class AuthController extends Controller
         ]
     ]);
 
-    $user = User::findOrFail($id);
-
-    $user->password = Hash::make(
-        $request->password
-    );
-
+    $user->password = Hash::make($request->password);
     $user->save();
 
-    return redirect('/login')
-        ->with(
-            'success',
-            'Đổi mật khẩu thành công.'
-        );
+    return redirect('/login')->with('success', 'Đổi mật khẩu thành công.');
 }
     //Hien thi form dang ky
     public function showRegister()

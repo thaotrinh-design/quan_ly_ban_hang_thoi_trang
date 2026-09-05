@@ -73,6 +73,12 @@ class CartService
             $item->delete();
         } else {
             $product = $item->product;
+
+            if (!$product) {
+                $item->delete();
+                throw new \InvalidArgumentException('Sản phẩm không còn tồn tại đã được xóa khỏi giỏ hàng.');
+            }
+
             $variantStock = $product->getStockByVariant($item->size, $item->color);
 
             if ($quantity > $variantStock) {

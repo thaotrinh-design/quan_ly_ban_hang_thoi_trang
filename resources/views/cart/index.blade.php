@@ -24,19 +24,30 @@
                     <input type="checkbox" class="cart-item-check form-check-input" value="{{ $item->id }}" checked>
                 </td>
                 <td>
+                    @if($item->product)
                     <div class="d-flex align-items-center">
                         <img src="{{ $item->product->image_url }}" width="60" class="me-2">
                         {{ $item->product->name }}
                     </div>
+                    @else
+                    <span class="text-muted">Sản phẩm không còn tồn tại</span>
+                    @endif
                 </td>
                 <td>{{ $item->size }} / {{ $item->color }}</td>
-                <td>{{ number_format($item->product->getSellingPrice()) }} VNĐ</td>
                 <td>
+                    @if($item->product)
+                        {{ number_format($item->product->getSellingPrice()) }} VNĐ
+                    @else
+                        <span class="text-muted">-</span>
+                    @endif
+                </td>
+                <td>
+                    @if($item->product)
+                    @php
+                        $itemStock = $item->product->getStockByVariant($item->size, $item->color);
+                    @endphp
                     <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex">
                         @csrf @method('PUT')
-                        @php
-                            $itemStock = $item->product->getStockByVariant($item->size, $item->color);
-                        @endphp
                         <input type="number" name="quantity" value="{{ $item->quantity }}" min="0" max="{{ $itemStock }}" class="form-control form-control-sm" style="width:70px">
                         <button class="btn btn-sm btn-secondary ms-1">OK</button>
                     </form>
@@ -45,8 +56,17 @@
                     @elseif($itemStock <= 5 && $itemStock > 0)
                         <small class="text-warning">Sắp hết hàng (còn {{ $itemStock }})</small>
                     @endif
+                    @else
+                    <span class="text-muted">-</span>
+                    @endif
                 </td>
-                <td>{{ number_format($item->product->getSellingPrice() * $item->quantity) }} VNĐ</td>
+                <td>
+                    @if($item->product)
+                        {{ number_format($item->product->getSellingPrice() * $item->quantity) }} VNĐ
+                    @else
+                        <span class="text-muted">-</span>
+                    @endif
+                </td>
                 <td>
                     <form action="{{ route('cart.destroy', $item->id) }}" method="POST">
                         @csrf @method('DELETE')

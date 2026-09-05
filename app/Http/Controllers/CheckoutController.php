@@ -90,8 +90,10 @@ class CheckoutController extends Controller
 
         $checkoutItems = $this->resolveCheckoutItems($cart);
 
+        $checkoutItems = $checkoutItems->filter(fn ($item) => $item->product !== null)->values();
+
         if ($checkoutItems->isEmpty()) {
-            return back()->with('error', 'Giỏ hàng trống.');
+            return back()->with('error', 'Giỏ hàng trống hoặc sản phẩm không còn tồn tại.');
         }
 
         $subtotal = $checkoutItems->sum(fn ($item) => $item->product->getSellingPrice() * $item->quantity);
@@ -127,7 +129,7 @@ class CheckoutController extends Controller
             $status = 'pending';
         }
 
-        DB::transaction(function () use ($user, $cart, $checkoutItems, $request, $subtotal, $total, $discount, $couponCode, $address, $isPickup, $status, &$coupon) {
+        $order = DB::transaction(function () use ($user, $cart, $checkoutItems, $request, $subtotal, $total, $discount, $couponCode, $address, $isPickup, $status, &$coupon) {
             $order = Order::create([
                 'user_id' => $user->id,
                 'receiver_name' => $request->receiver_name,
