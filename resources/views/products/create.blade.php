@@ -29,7 +29,7 @@
 
     <div class="mb-2"><label>Mô tả</label><textarea name="description" class="form-control"></textarea></div>
     <div class="mb-2"><label>Ảnh</label><input type="file" name="image" class="form-control"></div>
-    <div class="form-check mb-3"><input type="checkbox" name="status" value="1" class="form-check-input" checked><label class="form-check-label">Hiển thị</label></div>
+    <div class="form-check mb-3"><input type="hidden" name="status" value="0"><input type="checkbox" name="status" value="1" class="form-check-input" checked><label class="form-check-label">Hiển thị</label></div>
     <button class="btn btn-success">Lưu</button>
 </form>
 @endsection

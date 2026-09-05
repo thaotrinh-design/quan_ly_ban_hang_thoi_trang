@@ -71,7 +71,7 @@ class ProductController extends Controller
             'stock' => $totalStock,
             'available_sizes' => $sizes,
             'available_colors' => $colors,
-            'status' => $request->boolean('status', true),
+            'status' => $request->boolean('status'),
             'image' => $imagePath,
         ]);
 
@@ -139,7 +139,7 @@ class ProductController extends Controller
                 'stock' => $totalStock,
                 'available_sizes' => $sizes,
                 'available_colors' => $colors,
-                'status' => $request->boolean('status', true),
+                'status' => $request->boolean('status'),
                 'image' => $imagePath,
             ]);
 
@@ -222,6 +222,6 @@ class ProductController extends Controller
             return [];
         }
 
-        return array_values(array_filter(array_map('trim', explode(',', $value))));
+        return array_values(array_unique(array_filter(array_map('trim', explode(',', $value)))));
     }
 }
